@@ -1,0 +1,11 @@
+data/
+*.gguf
+*.db
+.env
+__pycache__/
+.venv/
+*.pkl
+*.joblib
+.ruff_cache/
+.pytest_cache/
+eval/results/*.tmp
