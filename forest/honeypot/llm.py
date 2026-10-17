@@ -5,12 +5,15 @@ model: ~8 tok/s, about 4 s per reply once the prompt is cached. The 1B bf16 deco
 (~28 s per reply) with a 6.4 GB peak, which doesn't fit next to the payment guard on an 8 GB VM.
 """
 
+import logging
 import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
 
 from forest import config
+
+log = logging.getLogger("forest.granite")
 
 N_THREADS = 2  # leaves a core for payment scoring
 N_CTX = 2048
@@ -82,13 +85,18 @@ class Granite:
             end = time.perf_counter()
         n = len(parts)
         decode = end - first if first else 0.0
-        return Generation(
+        gen = Generation(
             text="".join(parts),
             tokens=n,
             seconds=end - start,
             tok_per_s=(n - 1) / decode if n > 1 and decode > 0 else 0.0,
             timed_out=timed_out,
         )
+        log.info(
+            "%s: %d tokens in %.1f s, decode %.1f tok/s%s",
+            self.name, n, gen.seconds, gen.tok_per_s, " (over budget)" if timed_out else "",
+        )  # fmt: skip
+        return gen
 
 
 def load(

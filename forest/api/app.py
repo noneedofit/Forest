@@ -1,6 +1,7 @@
 """FastAPI service: scores payments, holds the intel store, streams events to the dashboard."""
 
 import asyncio
+import logging
 import os
 import re
 from collections import deque
@@ -91,6 +92,8 @@ class Stats:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Granite's per-reply speed goes to the container log (evidence for the demo)
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
     security.require_keys()
     app.state.store = Store(config.DB_PATH)
     app.state.guard = Guard(intel=app.state.store)
@@ -100,6 +103,8 @@ async def lifespan(app: FastAPI):
     app.state.bus = EventBus()
     app.state.stats = Stats(app.state.store)
     app.state.granite = llm.load() if os.environ.get("FOREST_GRANITE", "1") != "0" else None
+    if app.state.granite:
+        logging.getLogger("forest.granite").info("loaded %s", app.state.granite.name)
     app.state.agent = Agent(app.state.store, app.state.granite, publish=app.state.bus.publish)
     app.state.scenarios = load_all()
     app.state.sessions = {}
