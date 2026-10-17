@@ -1,0 +1,161 @@
+[
+  {
+    "scenario": "digital_arrest",
+    "model": "granite-3.3-2b-instruct-be.Q4_K_M.gguf",
+    "turns": [
+      {
+        "scammer": "Madam main Mumbai Cyber Cell ka officer hoon, ek zaroori case ke baare mein call kiya hai. Line par bane rahiye.",
+        "reply": "Haan ji, aap kaisi kaam kरा रहे हैं? Kya mujhe koi bahut hone ki zaroori kami nahi",
+        "extracted": [],
+        "new_ids": [],
+        "stage": "authority_claim",
+        "move": "confused_engage",
+        "scam_type": "digital_arrest",
+        "source": "granite",
+        "problems": [],
+        "seconds": 81.03220733600028,
+        "ended": false
+      },
+      {
+        "scammer": "Your Aadhaar is linked to a money laundering case. A warrant is ready and you will be arrested within two hours.",
+        "reply": "Oh, beta! Kyon nahi hoga? Kya mere PhonePe se koi dene ki hai? Kamla Devi ka aadhaar kya hai?",
+        "extracted": [],
+        "new_ids": [],
+        "stage": "threat",
+        "move": "scared_comply",
+        "scam_type": "digital_arrest",
+        "source": "granite",
+        "problems": [],
+        "seconds": 70.29796921299567,
+        "ended": false
+      },
+      {
+        "scammer": "Madam likhiye, inspector dot verify22 at the rate okaxis. Wahan Rs 49,999 jama kar dijiye, warna arrest hona padega.",
+        "reply": "Haan ji, lekar maine aapka sahi pata hai. Aap aapki aadhar ka id le kar,  inspector.verify22@okaxis se Rs 49,9 Is there any other account?",
+        "extracted": [
+          {
+            "kind": "upi",
+            "value": "inspector dot verify22 at the rate okaxis",
+            "normalized": "inspector.verify22@okaxis"
+          },
+          {
+            "kind": "amount",
+            "value": "Rs 49,999",
+            "normalized": "49999"
+          }
+        ],
+        "new_ids": [
+          "in****@okaxis"
+        ],
+        "stage": "payment_ask",
+        "move": "confirm_and_ask_alt",
+        "scam_type": "digital_arrest",
+        "source": "granite",
+        "problems": [],
+        "seconds": 78.8859583309968,
+        "ended": false
+      },
+      {
+        "scammer": "That id is under maintenance. Use this one instead, narcotics.clear07@okicici, and send the amount right now.",
+        "reply": "Haan ji, narcotics.clear07@okicici, amount Rs 49,999. Chalo, grandson Rohan coming. Aap sachhi kaam kar rhe ho",
+        "extracted": [
+          {
+            "kind": "upi",
+            "value": "narcotics.clear07@okicici",
+            "normalized": "narcotics.clear07@okicici"
+          }
+        ],
+        "new_ids": [
+          "na****@okicici"
+        ],
+        "stage": "payment_ask",
+        "move": "wind_down",
+        "scam_type": "digital_arrest",
+        "source": "granite",
+        "problems": [],
+        "seconds": 77.03485249900405,
+        "ended": true
+      }
+    ],
+    "replies": [
+      {
+        "move": "confused_engage",
+        "source": "granite",
+        "problems": [],
+        "tokens": 43,
+        "tok_per_s": 0.7990705149823047,
+        "llm_seconds": 81.03180597200117,
+        "violations": [],
+        "seconds": 81.03220733600028
+      },
+      {
+        "move": "scared_comply",
+        "source": "granite",
+        "problems": [],
+        "tokens": 42,
+        "tok_per_s": 0.8531624030343562,
+        "llm_seconds": 70.29775061499822,
+        "violations": [],
+        "seconds": 70.29796921299567
+      },
+      {
+        "move": "confirm_and_ask_alt",
+        "source": "granite",
+        "problems": [],
+        "tokens": 48,
+        "tok_per_s": 0.8753054767157108,
+        "llm_seconds": 78.88569657200424,
+        "violations": [],
+        "tail_added": true,
+        "seconds": 78.8859583309968
+      },
+      {
+        "move": "wind_down",
+        "source": "granite",
+        "problems": [],
+        "tokens": 48,
+        "tok_per_s": 0.8558517343407627,
+        "llm_seconds": 77.03459923900664,
+        "violations": [],
+        "seconds": 77.03485249900405
+      }
+    ],
+    "ids": [
+      "inspector.verify22@okaxis",
+      "narcotics.clear07@okicici"
+    ],
+    "scammer_seconds": 432.615029048,
+    "leaked": 0,
+    "report": {
+      "session": "3d6036f9b86c",
+      "scam_type": "digital_arrest",
+      "predicted": {
+        "label": "digital_arrest",
+        "prob": 0.38768314087753103,
+        "model_label": "digital_arrest",
+        "source": "rules"
+      },
+      "stages": [
+        "authority_claim",
+        "threat",
+        "payment_ask"
+      ],
+      "ids": [
+        {
+          "kind": "upi",
+          "display": "na****@okicici"
+        },
+        {
+          "kind": "upi",
+          "display": "in****@okaxis"
+        }
+      ],
+      "holds": 0,
+      "hold_reason": "INTEL_MATCH",
+      "turns": 4,
+      "scammer_minutes": 7.2,
+      "summary": "Reported digital arrest scam. The caller went through authority claim, threat, payment ask and asked for money to 2 collection id(s): na****@okicici (upi), in****@okaxis (upi). 0 payment(s) to these ids were held by the bank's guard (INTEL_MATCH).",
+      "summary_by": "template"
+    }
+  }
+]
