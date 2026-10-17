@@ -129,6 +129,20 @@
         "fn": 479,
         "tn": 861437
       }
+    },
+    "test_by_day": {
+      "2022-09-09": {
+        "rows": 654467,
+        "positives": 514,
+        "pause_rate": 0.028215326364812894,
+        "hold_rate": 0.0006998061017591415
+      },
+      "2022-09-10": {
+        "rows": 208325,
+        "positives": 442,
+        "pause_rate": 0.01921036841473659,
+        "hold_rate": 0.0020064802592103686
+      }
     }
   },
   "logreg_baseline": {
@@ -159,8 +173,8 @@
       }
     }
   },
-  "random_split_leaky": {
-    "note": "same recipe on a shuffled 60/20/20 split of Sep 1-10; mixes future into train",
+  "random_split": {
+    "note": "same recipe on a shuffled 60/20/20 split of Sep 1-10. It scores no higher than the time split: the features only look backwards, so shuffling rows has nothing to leak. The leakage example is PaySim (leakage.json).",
     "test": {
       "rows": 1015448,
       "positives": 919,
@@ -177,7 +191,7 @@
         "tn": 1004926
       },
       "hold_0_1pct": {
-        "threshold": 0.37069087199226863,
+        "threshold": 0.3706908719922687,
         "flagged_rate": 0.0010133458335631169,
         "recall": 0.48748639825897716,
         "precision": 0.43537414965986393,
@@ -198,9 +212,9 @@
     },
     "tree_format": "zdnn_tensors",
     "latency_ms": {
-      "p50": 0.045153999963076785,
-      "p99": 0.07216552770842027,
-      "mean": 0.050633027800176936
+      "p50": 0.04779499977303203,
+      "p99": 0.06641557934926813,
+      "mean": 0.05008126840384648
     },
     "note": "one call = feature update + Snap ML predict + policy, single thread"
   }
