@@ -60,11 +60,13 @@ class IntelIn(BaseModel):
 
 
 class Stats:
-    def __init__(self, totals: dict) -> None:
-        self.totals = totals
+    def __init__(self, store: Store) -> None:
+        self.store = store
+        self.totals = store.decision_totals()
         self.latency: deque[float] = deque(maxlen=10_000)
 
     def snapshot(self) -> dict:
+        self.totals["scammer_minutes"] = self.store.decision_totals()["scammer_minutes"]
         lat = np.array(self.latency) if self.latency else np.zeros(1)
         return {
             **self.totals,
@@ -82,7 +84,7 @@ async def lifespan(app: FastAPI):
     app.state.guard.model.predict_proba(np.zeros((1, len(FEATURES)), dtype=np.float32))
     app.state.platform = read_platform()
     app.state.bus = EventBus()
-    app.state.stats = Stats(app.state.store.decision_totals())
+    app.state.stats = Stats(app.state.store)
     app.state.granite = None
     yield
 

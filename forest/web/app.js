@@ -52,7 +52,7 @@ function renderIntel(rows) {
   ul.innerHTML = rows
     .map(
       (r) =>
-        `<li><span>${esc(r.display)} <small>${esc(r.scam_type || r.kind)}</small></span>` +
+        `<li><span>${esc(r.display)} <small>${esc(r.scam_type || r.kind)} · ${esc(r.first_seen.slice(11, 16))}</small></span>` +
         `<span class="hits">${r.hits} held</span></li>`
     )
     .join("");
