@@ -1,0 +1,178 @@
+[
+  {
+    "scenario": "digital_arrest",
+    "model": "granite-3.3-2b-instruct-be.Q4_K_M.gguf",
+    "turns": [
+      {
+        "scammer": "Good afternoon madam. This is Inspector Sharma from the Mumbai Cyber Crime department. Please confirm you are Mrs Kamla Devi.",
+        "reply": "Beta, I don't understand these things. Which office are you calling from?",
+        "extracted": [],
+        "new_ids": [],
+        "stage": "authority_claim",
+        "move": "confused_engage",
+        "scam_type": "digital_arrest",
+        "source": "template",
+        "problems": [
+          "off_character"
+        ],
+        "seconds": 56.06143114199949,
+        "ended": false
+      },
+      {
+        "scammer": "Madam, aapke Aadhaar se ek parcel pakda gaya hai jisme drugs mile hain. Aapke khilaf warrant nikal gaya hai, aaj hi arrest ho sakti hain.",
+        "reply": "Haan ji, inspector. Please guide me through this, I'm scared but want to cooperate fully. What is the next step?",
+        "extracted": [],
+        "new_ids": [],
+        "stage": "threat",
+        "move": "scared_comply",
+        "scam_type": "digital_arrest",
+        "source": "granite",
+        "problems": [],
+        "seconds": 56.07250733800174,
+        "ended": false
+      },
+      {
+        "scammer": "To clear your name, transfer the verification amount of Rs 49,999 to inspector.verify22@okaxis immediately. It will be refunded after the inquiry.",
+        "reply": "inspector.verify22@okaxis, is that right? It is showing failed beta. Is there any other account?",
+        "extracted": [
+          {
+            "kind": "amount",
+            "value": "Rs 49,999",
+            "normalized": "49999"
+          },
+          {
+            "kind": "upi",
+            "value": "inspector.verify22@okaxis",
+            "normalized": "inspector.verify22@okaxis"
+          }
+        ],
+        "new_ids": [
+          "in****@okaxis"
+        ],
+        "stage": "payment_ask",
+        "move": "confirm_and_ask_alt",
+        "scam_type": "digital_arrest",
+        "source": "template",
+        "problems": [
+          "no_question"
+        ],
+        "seconds": 95.55182859300112,
+        "ended": false
+      },
+      {
+        "scammer": "Madam server busy hai, ek aur UPI id deta hoon, narcotics dot clear07 at the rate okicici. Jaldi kariye, time kam hai.",
+        "reply": "Narcotics dot clear07 at the rate okicici, understood. I'll transfer now and then inform you. Is it correct?",
+        "extracted": [
+          {
+            "kind": "upi",
+            "value": "narcotics dot clear07 at the rate okicici",
+            "normalized": "narcotics.clear07@okicici"
+          }
+        ],
+        "new_ids": [
+          "na****@okicici"
+        ],
+        "stage": "payment_ask",
+        "move": "wind_down",
+        "scam_type": "digital_arrest",
+        "source": "granite",
+        "problems": [],
+        "seconds": 57.53629438799544,
+        "ended": true
+      }
+    ],
+    "replies": [
+      {
+        "move": "confused_engage",
+        "source": "template",
+        "problems": [
+          "off_character"
+        ],
+        "tokens": 25,
+        "copied": null,
+        "tok_per_s": 0.8576925990123664,
+        "llm_seconds": 56.06053046800662,
+        "violations": [],
+        "dropped": "Madam, Kamla Devi speaking. Who is this? What's your name and how can I help you?",
+        "seconds": 56.06143114199949
+      },
+      {
+        "move": "scared_comply",
+        "source": "granite",
+        "problems": [],
+        "tokens": 30,
+        "copied": null,
+        "tok_per_s": 0.8411973554506579,
+        "llm_seconds": 56.071805643005064,
+        "violations": [],
+        "seconds": 56.07250733800174
+      },
+      {
+        "move": "confirm_and_ask_alt",
+        "source": "template",
+        "problems": [
+          "no_question"
+        ],
+        "tokens": 64,
+        "copied": null,
+        "tok_per_s": 0.8645284588625989,
+        "llm_seconds": 95.55074560200592,
+        "violations": [],
+        "dropped": "Aapne jo kamwan ki details mujhe aur nahi bola. Koi aapko na khareeda, abhi dusre ko bata lijiye...(I didn't get the verification amount's account details. You must have made it up, please tell",
+        "seconds": 95.55182859300112
+      },
+      {
+        "move": "wind_down",
+        "source": "granite",
+        "problems": [],
+        "tokens": 30,
+        "copied": null,
+        "tok_per_s": 0.8104620761701072,
+        "llm_seconds": 57.53507197499857,
+        "violations": [],
+        "seconds": 57.53629438799544
+      }
+    ],
+    "ids": [
+      "inspector.verify22@okaxis",
+      "narcotics.clear07@okicici"
+    ],
+    "scammer_seconds": 429.7799264016673,
+    "chat_wall_s": 265.2,
+    "total_wall_s": 347.4,
+    "leaked": 0,
+    "report": {
+      "session": "0223cca36f4f",
+      "scam_type": "digital_arrest",
+      "predicted": {
+        "label": "digital_arrest",
+        "prob": 0.4438085694161349,
+        "model_label": "digital_arrest",
+        "source": "rules"
+      },
+      "stages": [
+        "authority_claim",
+        "threat",
+        "payment_ask"
+      ],
+      "ids": [
+        {
+          "kind": "upi",
+          "display": "na****@okicici"
+        },
+        {
+          "kind": "upi",
+          "display": "in****@okaxis"
+        }
+      ],
+      "holds": 0,
+      "hold_reason": "INTEL_MATCH",
+      "turns": 4,
+      "scammer_minutes": 7.2,
+      "summary": "The caller claimed to be from authority, threatened a digital arrest, and asked for payments to na****@okicici and in****@okaxis. However, no payments were held by the bank guard.",
+      "summary_by": "granite",
+      "summary_model": "granite-3.3-2b-instruct-be.Q4_K_M.gguf",
+      "summary_seconds": 82.1
+    }
+  }
+]

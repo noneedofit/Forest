@@ -53,6 +53,7 @@ def run_local(scenarios: list[dict], args) -> list[dict]:
         turns: list[dict] = []
         began = time.perf_counter()
         s = play(agent, sc, reported, seed=args.seed, on_turn=partial(record, turns))
+        talk = time.perf_counter() - began
         report = agent.report(s)
         print(f"\nreport ({report['summary_by']}, {report.get('summary_seconds', 0)}s): ", end="")
         print(report["summary"])
@@ -68,6 +69,8 @@ def run_local(scenarios: list[dict], args) -> list[dict]:
                 "replies": s.replies,
                 "ids": s.state.ids,
                 "scammer_seconds": s.state.scammer_seconds,
+                "chat_wall_s": round(talk, 1),
+                "total_wall_s": round(time.perf_counter() - began, 1),
                 "leaked": s.leaked,
                 "report": report,
             }
