@@ -1,6 +1,7 @@
 """FastAPI service: scores payments, holds the intel store, streams events to the dashboard."""
 
 import asyncio
+import os
 import re
 from collections import deque
 from contextlib import asynccontextmanager
@@ -18,6 +19,9 @@ from forest.api.events import EventBus
 from forest.guard.features import FEATURES
 from forest.guard.reasons import TEXT
 from forest.guard.score import Guard
+from forest.honeypot import llm
+from forest.honeypot.agent import Agent, Session
+from forest.honeypot.scenario import load_all
 from forest.intel.labels import KINDS, SCAM_TYPES
 from forest.intel.store import Store
 
@@ -61,6 +65,14 @@ class IntelIn(BaseModel):
     confidence: float | None = None
 
 
+class SessionIn(BaseModel):
+    scenario: str
+
+
+class TurnIn(BaseModel):
+    text: str
+
+
 class Stats:
     def __init__(self, store: Store) -> None:
         self.store = store
@@ -87,7 +99,11 @@ async def lifespan(app: FastAPI):
     app.state.platform = read_platform()
     app.state.bus = EventBus()
     app.state.stats = Stats(app.state.store)
-    app.state.granite = None
+    app.state.granite = llm.load() if os.environ.get("FOREST_GRANITE", "1") != "0" else None
+    app.state.agent = Agent(app.state.store, app.state.granite, publish=app.state.bus.publish)
+    app.state.scenarios = load_all()
+    app.state.sessions = {}
+    app.state.reports = {}
     yield
 
 
@@ -206,12 +222,61 @@ async def add_intel(body: IntelIn):
     return row
 
 
+def get_session(sid: str) -> Session:
+    s = app.state.sessions.get(sid)
+    if s is None:
+        raise HTTPException(404, "no such session")
+    return s
+
+
+@app.post("/honeypot/sessions")
+async def start_session(body: SessionIn):
+    """Open a chat for a reported number. Senders are the simulated scenarios here; anything
+    not reported gets a 403, because Kamla never starts a conversation herself."""
+    scenarios = app.state.scenarios
+    reported = {sid for sid, sc in scenarios.items() if sc.get("reported")}
+    sc = scenarios.get(body.scenario, {})
+    try:
+        s = app.state.agent.start(body.scenario, reported, body.scenario, sc.get("scam_type"))
+    except PermissionError as e:
+        raise HTTPException(403, str(e)) from e
+    app.state.sessions[s.id] = s
+    app.state.bus.publish("session", {"session": s.id, "caller": sc.get("caller", "")})
+    return {"id": s.id, "scenario": body.scenario, "caller": sc.get("caller")}
+
+
+@app.post("/honeypot/sessions/{sid}/turn")
+async def session_turn(sid: str, body: TurnIn):
+    s = get_session(sid)
+    agent: Agent = app.state.agent
+    try:
+        # Granite takes seconds; a worker thread keeps /score answering meanwhile.
+        out = await asyncio.to_thread(agent.turn, s, body.text)
+    except ValueError as e:
+        raise HTTPException(409, str(e)) from e
+    app.state.bus.publish("stats", app.state.stats.snapshot())
+    if out["ended"]:
+        report = await asyncio.to_thread(agent.report, s)
+        app.state.reports[sid] = report
+        app.state.bus.publish("report", report)
+    return out
+
+
+@app.get("/honeypot/sessions/{sid}/report")
+async def session_report(sid: str):
+    s = get_session(sid)
+    if sid not in app.state.reports or not s.state.ended:
+        return await asyncio.to_thread(app.state.agent.report, s)
+    return app.state.reports[sid]
+
+
 @app.get("/health")
 async def health():
     return {
         "ok": True,
         "model_loaded": app.state.guard is not None,
         "granite_loaded": app.state.granite is not None,
+        "granite_model": app.state.granite.name if app.state.granite else None,
         "tree_format": app.state.guard.tree_format,
         **app.state.platform,
     }
