@@ -1,0 +1,8 @@
+snapml
+fastapi
+uvicorn[standard]
+httpx
+pyyaml
+cryptography
+pytest
+ruff
