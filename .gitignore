@@ -9,3 +9,4 @@ __pycache__/
 .ruff_cache/
 .pytest_cache/
 eval/results/*.tmp
+.DS_Store
