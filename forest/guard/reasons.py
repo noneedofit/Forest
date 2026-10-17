@@ -11,6 +11,9 @@ PRIORITY = [
     "BURST",
 ]
 
+# Shown when the model alone stops a payment and no rule fires.
+FALLBACK = "RISK_PATTERN"
+
 TEXT = {
     "INTEL_MATCH": (
         "This account was reported in a scam conversation.",
@@ -39,6 +42,10 @@ TEXT = {
     "BURST": (
         "You have made several payments in the last hour.",
         "Aapne pichhle ek ghante mein kai bhugtaan kiye hain.",
+    ),
+    "RISK_PATTERN": (
+        "This payment looks like patterns seen in past fraud.",
+        "Yeh bhugtaan pehle hue fraud ke pattern jaisa dikhta hai.",
     ),
 }
 

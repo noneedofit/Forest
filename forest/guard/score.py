@@ -12,8 +12,10 @@ import numpy as np
 from snapml import BoostingMachineClassifier
 
 from forest.config import DATA_DIR
-from forest.guard.features import FEATURES, FeatureState
-from forest.guard.reasons import PRIORITY
+from forest.guard.features import FEATURES, LAST, to_epoch
+from forest.guard.reasons import FALLBACK, PRIORITY
+
+REQUIRED = ("ts", "src", "dst", "from_bank", "to_bank", "amount", "currency", "fmt")
 
 
 class IntelLookup(Protocol):
@@ -59,11 +61,12 @@ def reason_codes(f: dict[str, float], intel_hit: bool = False) -> list[str]:
 
 
 class Guard:
-    """Live scorer. Holds the feature state, so each call also records the payment."""
+    """Live scorer. Holds the feature state, so every call records the payment, whatever the
+    decision. Payments must arrive in time order; to replay from the start, make a new Guard."""
 
     def __init__(
         self, artifacts_dir: Path = DATA_DIR / "artifacts", intel: IntelLookup | None = None
-    ):
+    ) -> None:
         if json.loads((artifacts_dir / "feature_list.json").read_text()) != FEATURES:
             raise ValueError("feature_list.json does not match the feature code; retrain")
         th = json.loads((artifacts_dir / "thresholds.json").read_text())
@@ -72,23 +75,30 @@ class Guard:
         self.fx = json.loads((artifacts_dir / "fx_rates.json").read_text())
         self.model = load_model(artifacts_dir / "guard_model.pmml")
         self.tree_format = self.model.booster_.optimized_tree_format_
-        state_path = artifacts_dir / "feature_state.pkl"
-        if state_path.exists():
-            with open(state_path, "rb") as f:
-                self.state = pickle.load(f)
-        else:
-            self.state = FeatureState()
+        # Without the end-of-validation history every payment looks new and the thresholds
+        # mean nothing, so a missing snapshot is an error, not a cold start.
+        with open(artifacts_dir / "feature_state.pkl", "rb") as f:
+            self.state = pickle.load(f)
+        self.clock = max((rec[LAST] for rec in self.state.accts if rec), default=-1)
         self.intel = intel
         self._lock = threading.Lock()
 
     def score(self, txn: dict) -> Decision:
-        """`txn`: ts, src, dst, amount, currency, fmt, from_bank, to_bank (+ dst_handle)."""
+        """`txn` needs REQUIRED, with dataset names for currency ("Rupee") and fmt ("ACH").
+        Optional: currency_recv (defaults to currency), dst_handle (UPI alias for intel)."""
         start = time.perf_counter()
-        currency = txn.get("currency", "US Dollar")
-        if currency not in self.fx:
-            raise ValueError(f"unknown currency {currency!r}")
-        row = {**txn, "currency": currency, "amount_usd": float(txn["amount"]) * self.fx[currency]}
+        missing = [k for k in REQUIRED if txn.get(k) is None]
+        if missing:
+            raise ValueError(f"payment is missing {missing}")
+        if txn["currency"] not in self.fx:
+            raise ValueError(f"unknown currency {txn['currency']!r}")
+        t = to_epoch(txn["ts"])
+        row = {**txn, "ts": t, "amount_usd": float(txn["amount"]) * self.fx[txn["currency"]]}
         with self._lock:
+            # The 24 h windows only move forward; an older payment would corrupt them.
+            if t < self.clock:
+                raise ValueError("payment is older than the last one scored; restart the Guard")
+            self.clock = t
             feats = self.state.update_and_featurise(row)
             p = float(self.model.predict_proba(np.array([feats], dtype=np.float32))[0, 1])
         intel_hit = self.intel is not None and self.intel.is_flagged(
@@ -97,5 +107,5 @@ class Guard:
         decision = decide(p, self.t_pause, self.t_hold, intel_hit)
         reasons = []
         if decision != "allow":
-            reasons = reason_codes(dict(zip(FEATURES, feats)), intel_hit)
+            reasons = reason_codes(dict(zip(FEATURES, feats)), intel_hit) or [FALLBACK]
         return Decision(decision, p, reasons, (time.perf_counter() - start) * 1000)
