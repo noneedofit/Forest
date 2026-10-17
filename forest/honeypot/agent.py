@@ -27,6 +27,14 @@ WINDOW = 13  # last 6 exchanges plus the new scammer message
 LOW_CONF = 0.6
 OTHER_BELOW = 0.4
 SUMMARY_CHARS = 500
+# One worked example, so the base model copies the shape and sticks to the facts it is given.
+SUMMARY_HEAD = (
+    "Incident reports for the 1930 cyber crime helpline (India).\n\n"
+    "Scam type: lottery\nCaller script: hook, payment ask\nCollection ids: ra****@ybl (upi)\n"
+    "Payments held by the bank guard: 1 (INTEL_MATCH)\n"
+    "Summary: A caller promising a lottery prize asked the victim to pay a fee to ra****@ybl. "
+    "The id is now flagged and 1 payment to it was held by the bank guard.\n\n"
+)
 
 # Unmistakable cues that override a low-confidence classifier label. The classifier is weak
 # on job_task and family_emergency, which only have small hand-written seeds.
@@ -165,6 +173,7 @@ class Agent:
             "move": move,
             "scam_type": scam_type,
             "source": info["source"],
+            "problems": info["problems"],
             "seconds": info["seconds"],
             "ended": s.state.ended,
         }
@@ -260,8 +269,7 @@ class Agent:
         if not self.granite:
             return template, "template"
         facts = (
-            f"Scam type: {kind} (classifier probability {f['predicted']['prob']:.2f})\n"
-            f"Caller script: {stages}\nCollection ids: {ids}\n"
+            f"Scam type: {kind}\nCaller script: {stages}\nCollection ids: {ids}\n"
             f"Payments held by the bank guard: {f['holds']} (INTEL_MATCH)\n"
         )
         allowed = guardrails.Whitelist()
@@ -270,20 +278,19 @@ class Agent:
             prompt = [
                 {"role": "system", "content": "You write short incident reports for India's "
                  "1930 cyber crime helpline."},
-                {"role": "user", "content": facts + "Write a two-sentence summary."},
+                {"role": "user", "content": facts + "Write a two-sentence summary. Mention "
+                 "every collection id exactly as written."},
             ]  # fmt: skip
         else:
-            prompt = (
-                "Incident report for the 1930 cyber crime helpline (India).\n"
-                + facts
-                + "Summary in two sentences:"
-            )
-        gen = self.granite.generate(prompt, max_tokens=80, stop=["\n\n"])
+            prompt = SUMMARY_HEAD + facts + "Summary:"
+        gen = self.granite.generate(prompt, max_tokens=80, stop=["\n"])
         text = " ".join(gen.text.split())
         text = text[: text.rfind(".") + 1]
         sentences = [x.strip().lower() for x in re.split(r"(?<=\.)\s", text) if x.strip()]
         repeats = len(set(sentences)) < len(sentences)
         bad = set(guardrails.violations(text, allowed)) - {"too_long"}
-        if gen.timed_out or bad or repeats or not 40 <= len(text) <= SUMMARY_CHARS:
+        # a summary that drops an id the helpline needs is worse than the template
+        missing = any(i["display"] not in text for i in f["ids"])
+        if gen.timed_out or bad or repeats or missing or not 40 <= len(text) <= SUMMARY_CHARS:
             return template, "template"
         return text, "granite"

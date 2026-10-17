@@ -27,7 +27,8 @@ def show(text: str, out: dict) -> None:
     print(f"\nSCAMMER [{out['stage']}] {text}")
     if ents:
         print(f"   extracted: {ents}")
-    print(f"KAMLA   [{out['move']}, {out['source']}, {out['seconds']:.1f}s] {out['reply']}")
+    why = f" ({', '.join(out['problems'])})" if out.get("problems") else ""
+    print(f"KAMLA   [{out['move']}, {out['source']}{why}, {out['seconds']:.1f}s] {out['reply']}")
 
 
 def record(turns: list[dict], text: str, out: dict) -> None:
