@@ -95,7 +95,9 @@ def subsample(idx: np.ndarray, y: np.ndarray, seed: int = 42) -> np.ndarray:
     return np.sort(keep)
 
 
-def fit_boosting(x: np.ndarray, y: np.ndarray, num_round: int, max_depth: int):
+def fit_boosting(
+    x: np.ndarray, y: np.ndarray, num_round: int, max_depth: int
+) -> BoostingMachineClassifier:
     # Snap ML defaults to no L2 and a 0.5 base score. On 1:200 data that diverges or blows up
     # the leaf values; XGBoost's lambda=1 and the class prior keep it stable.
     model = BoostingMachineClassifier(
