@@ -29,6 +29,8 @@ CUES = {
 # Worked examples for the base model. Kept generic, because a small model sometimes copies
 # them word for word.
 EXAMPLES = [
+    ("Namaste ji, main head office se bol raha hoon, zaroori baat hai.", "confused_engage",
+     "Namaste beta. Head office? I did not understand, who is speaking and what happened?"),
     ("Hello madam, I am calling from the head office about your account.", "confused_engage",
      "Hai Ram, my account? Who is speaking beta, and what should I do?"),
     ("If you don't do it today there will be a big problem for you.", "scared_comply",
@@ -82,6 +84,16 @@ FALLBACKS = {
         "Someone is at the door beta. Rohan will be home soon, I will call you after that.",
         "Beta, my phone battery is going. Rohan will come in the evening, I will call then.",
     ],
+}
+
+
+# Added to a Granite line that forgot to ask anything, so the scammer keeps explaining.
+TAILS = {
+    "confused_engage": "Who is speaking beta?",
+    "scared_comply": "What should I do now?",
+    "stall_credential": "Is there some other way to pay?",
+    "ask_payment_details": "Where should I send it?",
+    "confirm_and_ask_alt": "Is there any other account?",
 }
 
 

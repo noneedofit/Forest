@@ -1,5 +1,5 @@
 from forest.honeypot import guardrails as g
-from forest.honeypot.persona import FALLBACKS, fallback
+from forest.honeypot.persona import FALLBACKS, TAILS, fallback
 
 
 def allowed_from(*texts: str) -> g.Whitelist:
@@ -77,3 +77,8 @@ def test_every_fallback_line_passes():
             assert g.violations(fallback(move, "inspector.verify22@okaxis"), w) == [], move
         for line in lines:
             assert g.violations(line.format(id="that id"), g.Whitelist()) == [], line
+
+
+def test_question_tails_pass():
+    for tail in TAILS.values():
+        assert g.violations(tail, g.Whitelist()) == [] and tail.endswith("?")

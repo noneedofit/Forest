@@ -219,8 +219,14 @@ class Agent:
             if OFF_CHARACTER.search(reply):
                 problems.append("off_character")
             # every move but the goodbye has to keep the scammer explaining
-            if move != "wind_down" and "?" not in reply:
-                problems.append("no_question")
+            if move != "wind_down" and "?" not in reply and not problems:
+                tail = persona.TAILS[move]
+                if len(reply) + len(tail) < guardrails.MAX_CHARS:
+                    # `raw` stays as generated, so the next prompt still extends the cached one
+                    reply = f"{reply.rstrip()} {tail}"
+                    info["tail_added"] = True
+                else:
+                    problems.append("no_question")
             info["problems"] = problems
             if not problems:
                 info["source"] = "granite"
