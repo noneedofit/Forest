@@ -1,0 +1,34 @@
+{
+  "data": "PaySim, TRANSFER + CASH_OUT only",
+  "rows": 2770409,
+  "split": "train step <= 500, test step > 500",
+  "train_positives": 5561,
+  "test_positives": 2652,
+  "model_a_with_balances": {
+    "features": [
+      "amount",
+      "type",
+      "oldbalanceOrg",
+      "newbalanceOrig",
+      "oldbalanceDest",
+      "newbalanceDest"
+    ],
+    "pr_auc": 0.9912357552825461,
+    "roc_auc": 0.9997705725165137
+  },
+  "model_b_no_balances": {
+    "features": [
+      "amount",
+      "type",
+      "hour",
+      "r_n_senders_24h",
+      "r_n_new_senders_24h",
+      "r_in_log_24h",
+      "r_age_hours",
+      "r_out_in_ratio_24h"
+    ],
+    "pr_auc": 0.5978347153830652,
+    "roc_auc": 0.9294896448206037
+  },
+  "note": "A looks near perfect because the balance columns encode the label: the fraud empties the account, and the after-payment balances don't exist yet when we must decide."
+}
