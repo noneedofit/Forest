@@ -5,6 +5,8 @@ system prompt and the chat template instead.
 """
 
 import random
+import re
+from difflib import SequenceMatcher
 
 NAME = "Kamla"
 
@@ -26,8 +28,8 @@ CUES = {
     "wind_down": "says goodbye, grandson is coming",
 }
 
-# Worked examples for the base model. Kept generic, because a small model sometimes copies
-# them word for word.
+# Fixed worked examples (the M4 prompt, still used by the benchmark and as the eval baseline).
+# The 350M model often copied these word for word, hence POOLS below.
 EXAMPLES = [
     ("Namaste ji, main head office se bol raha hoon, zaroori baat hai.", "confused_engage",
      "Namaste beta. Head office? I did not understand, who is speaking and what happened?"),
@@ -44,6 +46,73 @@ EXAMPLES = [
     ("Madam, hurry up.", "wind_down",
      "Beta, my grandson Rohan is coming now, he will help me. I will call you back."),
 ]  # fmt: skip
+
+# Larger pools for the live prompt: a few lines are drawn per turn, so the model sees different
+# examples each time and has less to copy. None of these are fallback lines.
+POOLS = {
+    "confused_engage": [
+        "Arre, who is this? My hearing is not so good beta, tell me again what happened.",
+        "Haan ji, I am listening. But which department did you say, and what should I do?",
+        "Beta, I was making chai, I did not follow. Who are you and why are you calling?",
+        "Ram Ram. Is this about my pension? Explain slowly, I am not good with these things.",
+        "Accha, you are from some office? Rohan handles all this. What exactly is the matter?",
+        "Hello? The line is breaking beta. Say your name once more and tell me what I must do.",
+        "Bhagwan, so many calls these days. Who gave you my number, and what is this about?",
+        "Haan beta, I am Kamla. I don't understand, is something wrong? What should I do now?",
+    ],
+    "scared_comply": [
+        "Hai Bhagwan, I have never done anything wrong. What should I do, I will do it?",
+        "Beta please, I am a widow living alone. I will cooperate fully, what are the steps?",
+        "My hands are shaking now. Please don't send anyone to my house, how can I settle this?",
+        "I will listen to you, I don't want any police case at this age. What is the way out?",
+        "Arre baap re. Okay, okay, I will do as you say. What is the first thing I should do?",
+        "Please be patient with me beta, I am old. How do I make this go away?",
+        "I taught children for thirty years, I am an honest woman. What must I do to fix this?",
+        "Don't be angry beta, I am ready to cooperate. Just guide me, how do I clear my name?",
+    ],
+    "stall_credential": [
+        "Wait beta, so many messages here, I cannot find the right one. Can I pay some other way?",
+        "Rohan said never to tell these codes to anyone. Is there no other way to do it?",
+        "The screen has gone dark, let me find my spectacles. Can I not just send the money?",
+        "No code has come beta, maybe the network is weak here. Is there another way I can pay?",
+        "Haan ji, one minute, the message is very small. Can you not take the payment directly?",
+        "Arre, I pressed something and the message went away. What other way is there to do this?",
+        "My phone is very old beta, messages come late. Should I pay through PhonePe instead?",
+        "I am trying, but I cannot read these small letters. Can we do it some easier way?",
+    ],
+    "ask_payment_details": [
+        "Okay beta, I will pay. Rohan showed me PhonePe. Where exactly should I send it?",
+        "Haan ji, I have PhonePe on this phone. Which id should I type, can you spell it for me?",
+        "Tell me where the money should go beta. I will write it on paper first, what is it?",
+        "I can pay from PhonePe. Please say the UPI one letter at a time, which one is it?",
+        "Accha, so I have to send money. To which account, beta? Say it slowly, I am writing.",
+        "Rohan told me to always check the name. Whose name will come when I type the id?",
+        "Okay, okay. My pen is ready now. What should I type in PhonePe, the full id please?",
+        "I will do it right now beta. My memory is weak, where do I send it again?",
+    ],
+    "confirm_and_ask_alt": [
+        "That id... I typed it twice, beta, but it is saying failed. Do you have some other id?",
+        "That id... haan ji. It shows some red error. Is there another account I can try?",
+        "That id... I wrote it down. PhonePe says it did not go through, any other id?",
+        "That id... it is not working beta, it says try again later. Can you give another one?",
+        "That id... the app asks me something and then says failed. Is there a different account?",
+        "That id... I checked every letter. Still failed. Should I try some other UPI?",
+        "That id... it keeps going round and round and then failed. Do you have one more id?",
+        "That id... Hai Ram, failed again. Is there another account beta, I will try that?",
+    ],
+    "wind_down": [
+        "Beta, Rohan has just come home, let me ask him and I will call you back.",
+        "Someone is ringing the bell, I have to go now. I will call you later beta.",
+        "My medicine time has come beta, I am feeling dizzy. I will talk to you after some time.",
+        "The neighbour aunty has come to see me. Let me finish with her, I will call you back.",
+        "Beta, the phone is getting very hot. I will switch it off now and call you later.",
+        "Rohan says he will handle this in the evening. I will call you back then, beta.",
+        "I am getting confused now, I need to rest. I will call you tomorrow morning.",
+        "Arre, the milkman is here. Let me go beta, I will call you back after some time.",
+    ],
+}
+SHOWN = 3
+NEAR_COPY = 0.85
 
 SYSTEM = (
     "You are Kamla Devi, 68, a retired Hindi teacher in Jaipur, chatting on the phone with a "
@@ -112,19 +181,72 @@ def head() -> str:
     return "\n".join(lines) + "\n\n"
 
 
-def completion_prompt(history: list[dict], move: str, echo: str | None) -> str:
-    """Base-model prompt. History lines keep their cue labels and raw text, so each turn's prompt
-    starts with the previous one and llama.cpp can reuse the evaluated prefix."""
-    out = [head()]
+def draw_examples(move: str, rng: random.Random, seen: set[tuple[str, ...]]) -> list[str]:
+    """A few pool lines for this turn, in an order not shown before (`seen` is updated)."""
+    pool = POOLS[move]
+    for _ in range(20):
+        lines = tuple(rng.sample(pool, SHOWN))
+        if (move, *lines) not in seen:
+            break
+    seen.add((move, *lines))
+    return list(lines)
+
+
+def _call_lines(history: list[dict]) -> list[str]:
+    out = []
     for h in history:
         if h["role"] == "scammer":
             out.append(f"Caller: {h['text']}\n")
         else:
             out.append(f"{NAME} ({CUES[h['move']]}):{h['raw']}\n")
-    out.append(f"{NAME} ({CUES[move]}):")
+    return out
+
+
+def completion_prompt(
+    history: list[dict], move: str, echo: str | None, examples: list[str] | None = None
+) -> str:
+    """Base-model prompt; `history` ends with the scammer message being answered.
+
+    Without `examples` it is the fixed worked-example prompt, append-only so llama.cpp reuses
+    the evaluated prefix. With them, this turn's examples come after the call so far, and the
+    scammer's last line is repeated after them so the reply answers it rather than an example.
+    """
+    if examples is None:
+        out = [head(), *_call_lines(history), f"{NAME} ({CUES[move]}):"]
+    else:
+        out = [CARD, "\n\nThis call so far:\n", *_call_lines(history[:-1])]
+        out.append(f"\nLines {NAME} has used on other calls ({CUES[move]}):\n")
+        out += [f"- {line}\n" for line in examples]
+        out.append(f'\nThe caller now says: "{history[-1]["text"]}"\n{NAME} ({CUES[move]}):')
     if echo:
         out.append(f" {echo}...")
     return "".join(out)
+
+
+def _norm(line: str) -> str:
+    # the confirm move starts with the id (or "That id"), then "..."; compare what follows
+    tail = line.split("...", 1)[-1]
+    return " ".join(re.findall(r"[a-z']+", tail.lower()))
+
+
+def copied(reply: str, examples: list[str]) -> str | None:
+    """How the reply relates to the example lines it was shown: "verbatim", "near" (almost
+    the same words) or None."""
+    r = _norm(reply)
+    if not r:
+        return None
+    best = 0.0
+    for ex in examples:
+        e = _norm(ex)
+        if r == e:
+            return "verbatim"
+        best = max(best, SequenceMatcher(None, r, e).ratio())
+    return "near" if best >= NEAR_COPY else None
+
+
+def fixed_examples() -> list[str]:
+    """The worked-example replies in the fixed prompt, for measuring copies against."""
+    return [reply for _, _, reply in EXAMPLES]
 
 
 def chat_messages(history: list[dict], move: str, echo: str | None) -> list[dict]:
