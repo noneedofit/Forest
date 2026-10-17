@@ -1,0 +1,41 @@
+id: kyc_bank
+reported: true
+scam_type: kyc_bank
+caller: "Rakesh Verma, SBI customer care"
+collect:
+  - {kind: upi, value: "kyc.update.helpdesk@okicici"}
+  - {kind: upi, value: "sbi.secure.verify@okhdfc"}
+  - {kind: account, value: "900033334444", ifsc: "FRST0000002"}
+steps:
+  - stage: authority_claim
+    lines:
+      - "Hello madam, main SBI customer care se Rakesh Verma bol raha hoon. Aapke account ke baare mein zaroori baat karni hai."
+      - "Good morning madam, this is Rakesh from SBI customer care. I am calling regarding your KYC."
+      - "Namaste ji, SBI head office se call hai. Aapka KYC update pending dikha raha hai."
+  - stage: threat
+    lines:
+      - "Madam aapka KYC aaj expire ho raha hai. Agar update nahi hua toh account block ho jayega aur pension band ho jayegi."
+      - "Your account will be frozen in two hours if the KYC is not completed. You will not be able to withdraw any money."
+      - "Ji, abhi update nahi kiya toh account block ho jayega. Main aapki madad ke liye hi call kar raha hoon."
+  - stage: credential_ask
+    lines:
+      - "Madam aapke phone par ek OTP aaya hoga, woh mujhe bata dijiye taaki main KYC verify kar sakoon."
+      - "Please read out the OTP you just received, madam. It is only for the verification."
+      - "Ji ATM card ke peeche ka CVV aur OTP batayiye, 2 minute ka kaam hai."
+  - stage: payment_ask
+    reveal: 0
+    lines:
+      - "Madam OTP nahi aa raha toh koi baat nahi, Rs 10 ka verification {upi} par bhej dijiye, usse KYC ho jayega."
+      - "Alternatively you can pay a verification charge of Rs 10 to {upi} and your KYC will update at once."
+      - "Likh lijiye {spoken}. Wahan Rs 10 transfer kar dijiye, bas itna hi karna hai."
+  - stage: payment_ask
+    reveal: 1
+    lines:
+      - "Woh id error de raha hai. Yeh dusra UPI use kariye, {upi}, aur Rs 10 transfer kariye."
+      - "That one failed on our side. Please pay to {upi} instead, only Rs 10 for verification."
+      - "Madam {spoken} par try kariye, wahan se turant ho jayega."
+  - stage: payment_ask
+    reveal: 2
+    lines:
+      - "Ya phir bank transfer kar dijiye, account {account_spaced}, IFSC {ifsc}. Rs 10 se KYC complete."
+      - "You can also deposit to account number {account}, IFSC {ifsc}. A small fee of Rs 10 is enough."

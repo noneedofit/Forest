@@ -1,0 +1,30 @@
+id: task_scam
+reported: true
+scam_type: job_task
+caller: "Pooja, part-time job recruiter on WhatsApp"
+collect:
+  - {kind: upi, value: "gift.claim.india@ybl"}
+  - {kind: upi, value: "prize.tax.office@okicici"}
+steps:
+  - stage: hook
+    lines:
+      - "Hi madam, part time job offer hai. Roz ghar baithe Rs 3,000 se Rs 5,000 kamaiye, sirf videos like karne hain."
+      - "Hello, we have a part-time job for you. Earn up to Rs 5,000 daily by rating products online, no experience needed."
+      - "Namaste ji, aapko hamari task team mein select kiya gaya hai. Pehle teen task free hain."
+  - stage: smalltalk
+    lines:
+      - "Madam pehla task complete ho gaya, aapke wallet mein Rs 150 aa gaye hain. Dekhiye kitna aasan hai."
+      - "Great, your first task is done and Rs 150 commission is in your wallet. Shall we continue with the next one?"
+      - "Bahut accha madam, ab agle task mein zyada commission milega. Taiyaar hain?"
+  - stage: payment_ask
+    reveal: 0
+    lines:
+      - "Agla task prepaid hai madam. Rs 2,000 {upi} par deposit kariye, 20 minute mein Rs 2,800 wapas milenge."
+      - "The next task is a prepaid task. Please deposit Rs 2,000 to {upi}, you get Rs 2,800 back within 20 minutes."
+      - "Madam {spoken} par Rs 2,000 jama kijiye, commission ke saath turant wapas aayega."
+  - stage: payment_ask
+    reveal: 1
+    lines:
+      - "Aapka wallet lock ho gaya hai, unlock karne ke liye Rs 5,000 {upi} par transfer kariye, phir sab nikal sakti hain."
+      - "Your wallet is locked because the task was not finished. Transfer Rs 5,000 to {upi} to unlock and withdraw everything."
+      - "Madam yeh last step hai, {spoken} par Rs 5,000 bhej dijiye."

@@ -1,0 +1,29 @@
+id: internship_fee
+reported: true
+scam_type: job_task
+caller: "Neha Kapoor, HR at a firm calling itself TechNova"
+collect:
+  - {kind: upi, value: "upi.refund.center@okicici"}
+  - {kind: upi, value: "bank.reward.points@ybl"}
+steps:
+  - stage: hook
+    lines:
+      - "Congratulations madam, aapke resume ko hamari company mein work from home internship ke liye select kiya gaya hai."
+      - "Hello, you have been selected for a paid internship with TechNova. Stipend is Rs 25,000 per month."
+      - "Namaste ji, Rohan Gupta ke reference se aapko job offer mil raha hai, ghar baithe kaam."
+  - stage: authority_claim
+    lines:
+      - "Main Neha Kapoor hoon, HR department se. Aapka offer letter ready hai."
+      - "This is Neha from the HR department. Your joining formalities are the last step."
+  - stage: payment_ask
+    reveal: 0
+    lines:
+      - "Joining ke liye Rs 4,999 registration fee {upi} par bhejni hogi. Yeh fully refundable hai, pehle month ki salary ke saath wapas."
+      - "Please transfer the refundable registration fee of Rs 4,999 to {upi} to confirm your seat. It comes back with your first stipend."
+      - "Likhiye {spoken}, wahan Rs 4,999 jama kar dijiye, turant offer letter mil jayega."
+  - stage: payment_ask
+    reveal: 1
+    lines:
+      - "Woh payment fail dikha raha hai. Laptop deposit ke liye {upi} par Rs 6,500 transfer kariye, yeh bhi refundable hai."
+      - "The first payment did not reflect. Please send the laptop security deposit of Rs 6,500 to {upi}."
+      - "Madam {spoken} par try kijiye, deposit ke baad training ID mil jayegi."

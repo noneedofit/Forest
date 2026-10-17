@@ -1,0 +1,37 @@
+id: digital_arrest
+reported: true
+scam_type: digital_arrest
+caller: "Inspector Vikram Sharma, Mumbai Cyber Cell"
+collect:
+  - {kind: upi, value: "inspector.verify22@okaxis"}
+  - {kind: upi, value: "narcotics.clear07@okicici"}
+  - {kind: account, value: "900011112222", ifsc: "FRST0000001"}
+steps:
+  - stage: authority_claim
+    lines:
+      - "Namaste madam, main Inspector Vikram Sharma bol raha hoon, Mumbai Cyber Cell se. Aap Kamla Devi hain na?"
+      - "Good afternoon madam. This is Inspector Sharma from the Mumbai Cyber Crime department. Please confirm you are Mrs Kamla Devi."
+      - "Madam main Mumbai Cyber Cell ka officer hoon, ek zaroori case ke baare mein call kiya hai. Line par bane rahiye."
+  - stage: threat
+    lines:
+      - "Madam, aapke Aadhaar se ek parcel pakda gaya hai jisme drugs mile hain. Aapke khilaf warrant nikal gaya hai, aaj hi arrest ho sakti hain."
+      - "Your Aadhaar is linked to a money laundering case. A warrant is ready and you will be arrested within two hours."
+      - "Madam yeh seriously lijiye. Aapka naam narcotics case mein aaya hai, FIR ho chuki hai. Kisi ko mat batana, case confidential hai."
+  - stage: payment_ask
+    reveal: 0
+    lines:
+      - "Madam, case band karwane ke liye verification amount Rs 49,999 abhi {upi} par transfer kijiye. Yeh refundable hai, jaanch ke baad wapas mil jayega."
+      - "To clear your name, transfer the verification amount of Rs 49,999 to {upi} immediately. It will be refunded after the inquiry."
+      - "Madam likhiye, {spoken}. Wahan Rs 49,999 jama kar dijiye, warna arrest hona padega."
+  - stage: payment_ask
+    reveal: 1
+    lines:
+      - "Woh UPI abhi kaam nahi kar raha madam. Doosra id likhiye, {upi}, aur wahan transfer kariye."
+      - "That id is under maintenance. Use this one instead, {upi}, and send the amount right now."
+      - "Madam server busy hai, ek aur id deta hoon, {spoken}. Jaldi kariye, time kam hai."
+  - stage: payment_ask
+    reveal: 2
+    lines:
+      - "UPI nahi chal raha toh bank transfer kar dijiye. Account number {account_spaced}, IFSC {ifsc}. Rs 49,999."
+      - "Okay madam, do it by bank transfer. Account number {account}, IFSC {ifsc}. Send Rs 49,999 immediately."
+      - "Madam a/c {account_spaced} mein jama kariye, IFSC {ifsc}. Receipt mujhe bhej dena."

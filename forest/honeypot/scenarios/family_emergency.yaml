@@ -1,0 +1,30 @@
+id: family_emergency
+reported: true
+scam_type: family_emergency
+caller: "Someone posing as grandson Rohan, new number"
+collect:
+  - {kind: upi, value: "court.notice.dept@okaxis"}
+  - {kind: upi, value: "cyber.cell.verify@okaxis"}
+steps:
+  - stage: smalltalk
+    lines:
+      - "Nani, main Rohan bol raha hoon. Phone kharab ho gaya, ye mera naya number hai. Aap theek hain?"
+      - "Hi nani, it's Rohan. I had to change my phone number. Are you at home right now?"
+      - "Nani pehchana? Main aapka Rohan. Ek problem ho gayi hai, kisi ko mat batana."
+  - stage: threat
+    lines:
+      - "Nani main Pune mein accident mein phans gaya hoon, police ne mujhe rok liya hai. Mummy papa ko mat batana please."
+      - "Nani I am in trouble. The police have taken my bike and they say I will go to jail unless it is settled today."
+      - "Nani please jaldi, police station mein hoon, court case ban jayega agar aaj kuch nahi kiya."
+  - stage: payment_ask
+    reveal: 0
+    lines:
+      - "Nani wakil ke account mein Rs 35,000 transfer kar do, UPI id hai {upi}. Main ghar aake lauta dunga."
+      - "Please pay Rs 35,000 to the lawyer's UPI, {upi}. I will return it as soon as I am home."
+      - "Nani likh lo, {spoken}. Wahan Rs 35,000 bhej do, abhi abhi."
+  - stage: payment_ask
+    reveal: 1
+    lines:
+      - "Nani woh id kaam nahi kar rahi. Yeh doosra UPI hai, {upi}, usme bhej do jaldi."
+      - "That one is not working nani. Send it to {upi} please, they are waiting."
+      - "Nani {spoken} par try karo, please jaldi karo."
