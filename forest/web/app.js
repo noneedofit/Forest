@@ -69,13 +69,17 @@ function chatNote(cls, html) {
   return div;
 }
 
+let current = null; // session shown in the chat panel
+
 function newSession(e) {
+  current = e.session;
   $("chat").innerHTML = "";
   chatNote("note", `Reported number · ${esc(e.caller)}`);
 }
 
 // Granite takes a few seconds per reply, so show that Kamla is "typing" meanwhile.
 function addChat(e) {
+  current = e.session;
   const typing = $("chat").querySelector(".typing");
   if (typing) typing.remove();
   let html = esc(e.text);
@@ -84,14 +88,25 @@ function addChat(e) {
   if (e.role === "scammer") chatNote("msg agent typing", "Kamla is typing…");
 }
 
+const modelName = (f) => (f || "").replace(/-be\.\w+\.gguf$|\.gguf$/, "");
+
+// The 2B summary arrives a minute or two after the chat ends; until then the card says so,
+// and the final report replaces it in place.
 function showReport(r) {
   const ids = r.ids.map((i) => esc(i.display)).join(", ") || "none";
-  chatNote(
-    "report",
-    `<b>Report for the 1930 helpline</b> <small>${r.summary_by === "granite" ? "written by Granite" : "template"}</small>` +
-      `<p>${esc(r.summary)}</p><small>${esc(r.scam_type.replace("_", " "))} · ids: ${ids} · ` +
-      `${r.turns} turns · ${r.scammer_minutes} scammer min</small>`
-  );
+  const by = {
+    pending: `${esc(modelName(r.summary_model))} is writing the summary…`,
+    granite: `written by ${esc(modelName(r.summary_model) || "Granite")}`,
+    template: "template",
+  }[r.summary_by];
+  const body = r.summary_by === "pending" ? "<p><i>Summary pending…</i></p>" : `<p>${esc(r.summary)}</p>`;
+  const html =
+    `<b>Report for the 1930 helpline</b> <small>${by}</small>${body}` +
+    `<small>${esc(r.scam_type.replace("_", " "))} · ids: ${ids} · ` +
+    `${r.turns} turns · ${r.scammer_minutes} scammer min</small>`;
+  const card = $("chat").querySelector(`[data-report="${r.session}"]`);
+  if (card) card.innerHTML = html;
+  else if (r.session === current) chatNote("report", html).dataset.report = r.session;
 }
 
 function showStats(s) {
@@ -112,7 +127,8 @@ async function init() {
   const badge = $("b-platform");
   const nnpa = h.nnpa && h.tree_format.startsWith("zdnn");
   badge.textContent = `${h.machine} · ${nnpa ? "Snap ML on Telum II NNPA (zDNN)" : "Snap ML"}` +
-    (h.granite_loaded ? ` · ${h.granite_model.replace(/-be\.\w+\.gguf$|\.gguf$/, "")}` : "");
+    (h.granite_loaded ? ` · ${modelName(h.granite_model)}` : "") +
+    (h.summary_model ? ` + ${modelName(h.summary_model)}` : "");
   badge.classList.add("ok");
   showStats(await (await fetch("/stats")).json());
   await refreshIntel();

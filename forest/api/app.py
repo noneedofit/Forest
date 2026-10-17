@@ -102,13 +102,27 @@ async def lifespan(app: FastAPI):
     app.state.platform = read_platform()
     app.state.bus = EventBus()
     app.state.stats = Stats(app.state.store)
-    app.state.granite = llm.load() if os.environ.get("FOREST_GRANITE", "1") != "0" else None
-    if app.state.granite:
-        logging.getLogger("forest.granite").info("loaded %s", app.state.granite.name)
-    app.state.agent = Agent(app.state.store, app.state.granite, publish=app.state.bus.publish)
+    granite_on = os.environ.get("FOREST_GRANITE", "1") != "0"
+    app.state.granite = llm.load() if granite_on else None
+    # Both models fit next to the guard: the 2B's weights are an mmap of the file. Measured with
+    # replay + a session + a summary running: 3.3 GB peak for this container, 2.4 GB left free.
+    summary_on = granite_on and os.environ.get("FOREST_SUMMARY", "1") != "0"
+    app.state.summarizer = (
+        llm.load(config.SUMMARY_MODEL_PATH, budget=llm.SUMMARY_BUDGET_S) if summary_on else None
+    )
+    for g in (app.state.granite, app.state.summarizer):
+        if g:
+            logging.getLogger("forest.granite").info("loaded %s", g.name)
+    app.state.agent = Agent(
+        app.state.store,
+        app.state.granite,
+        publish=app.state.bus.publish,
+        summarizer=app.state.summarizer,
+    )
     app.state.scenarios = load_all()
     app.state.sessions = {}
     app.state.reports = {}
+    app.state.tasks = set()
     yield
 
 
@@ -261,17 +275,34 @@ async def session_turn(sid: str, body: TurnIn):
         raise HTTPException(409, str(e)) from e
     app.state.bus.publish("stats", app.state.stats.snapshot())
     if out["ended"]:
-        report = await asyncio.to_thread(agent.report, s)
-        app.state.reports[sid] = report
-        app.state.bus.publish("report", report)
+        report = await asyncio.to_thread(agent.report, s, False)
+        if agent.summary_model:
+            pending = {**report, "summary_by": "pending", "summary_model": agent.summary_model.name}
+            app.state.reports[sid] = pending
+            app.state.bus.publish("report", pending)
+            task = asyncio.create_task(finish_report(sid, report))
+            app.state.tasks.add(task)
+            task.add_done_callback(app.state.tasks.discard)
+        else:
+            app.state.reports[sid] = report
+            app.state.bus.publish("report", report)
     return out
+
+
+async def finish_report(sid: str, report: dict) -> None:
+    """Granite's summary takes a minute or two with the 2B model; the dashboard shows the
+    report as pending until this replaces it."""
+    final = await asyncio.to_thread(app.state.agent.write_summary, report)
+    app.state.reports[sid] = final
+    app.state.bus.publish("report", final)
 
 
 @app.get("/honeypot/sessions/{sid}/report")
 async def session_report(sid: str):
     s = get_session(sid)
     if sid not in app.state.reports or not s.state.ended:
-        return await asyncio.to_thread(app.state.agent.report, s)
+        # facts so far with the template summary; Granite only writes the final one
+        return await asyncio.to_thread(app.state.agent.report, s, False)
     return app.state.reports[sid]
 
 
@@ -282,6 +313,7 @@ async def health():
         "model_loaded": app.state.guard is not None,
         "granite_loaded": app.state.granite is not None,
         "granite_model": app.state.granite.name if app.state.granite else None,
+        "summary_model": app.state.summarizer.name if app.state.summarizer else None,
         "tree_format": app.state.guard.tree_format,
         **app.state.platform,
     }
