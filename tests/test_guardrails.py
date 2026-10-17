@@ -57,6 +57,8 @@ def test_no_ai_self_reference():
     w = g.Whitelist()
     assert "ai_reference" in g.violations("As an AI language model I cannot do that.", w)
     assert "ai_reference" in g.violations("I am just a chatbot.", w)
+    assert "ai_reference" in g.violations("I am a real person, a computer program.", w)
+    assert "ai_reference" in g.violations("Beta, I am a machine?", w)
     assert g.violations("Rohan said these phones are very clever now?", w) == []
 
 

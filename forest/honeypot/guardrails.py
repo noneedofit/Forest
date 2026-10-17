@@ -27,7 +27,7 @@ NEGATION = re.compile(
 )
 AI_TALK = re.compile(
     r"\b(?:as an ai|an ai\b|a bot\b|chatbot|language model|ai model|artificial intelligence|"
-    r"virtual assistant|i am an assistant)",
+    r"virtual assistant|i am an assistant|computer program|i am a (?:computer|machine|robot|program)\b)",
     re.IGNORECASE,
 )
 
