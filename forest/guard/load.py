@@ -71,10 +71,9 @@ def load_aml(path: Path, nrows: int | None = None) -> pd.DataFrame:
     df["ts"] = (
         pd.to_datetime(df["ts"], format="%Y/%m/%d %H:%M").astype("datetime64[s]").astype("int64")
     )
-    df["amount_usd"] = (df["amt_paid"] * df["cur_paid"].map(FX_TO_USD).astype(np.float64)).astype(
-        np.float32
-    )
-    df = df.drop(columns=["amt_recv", "amt_paid"])
+    # float64 on purpose: the live scorer does the same multiplication, so features match exactly.
+    df["amount_usd"] = df["amt_paid"] * df["cur_paid"].map(FX_TO_USD).astype(np.float64)
+    df = df.drop(columns=["amt_recv"])
     return df.sort_values("ts", kind="stable").reset_index(drop=True)
 
 
