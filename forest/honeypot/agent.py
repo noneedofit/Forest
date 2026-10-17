@@ -245,6 +245,8 @@ class Agent:
                 problems.append("off_character")
             if echoes_caller(reply, s.history[-1]["text"]):
                 problems.append("echoes_caller")
+            if persona.copied(reply, [h["text"] for h in s.history if h["role"] == "agent"]):
+                problems.append("repeats_herself")
             # every move but the goodbye has to keep the scammer explaining
             if move != "wind_down" and "?" not in reply and not problems:
                 tail = persona.TAILS[move]

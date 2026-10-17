@@ -65,6 +65,7 @@ def test_no_ai_self_reference():
 def test_clean_strips_role_and_trims_length():
     assert g.clean("Kamla (scared, asks how): Hai Ram, what to do?") == "Hai Ram, what to do?"
     assert g.clean(' "Haan ji beta?"\nCaller: pay now') == "Haan ji beta?"
+    assert g.clean(" - Hello? Who is this beta?") == "Hello? Who is this beta?"
     long = "Haan ji beta, I am listening. " * 10
     out = g.clean(long)
     assert len(out) <= g.MAX_CHARS and out.endswith(".")

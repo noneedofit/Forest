@@ -61,8 +61,10 @@ def may_reply(history: list[dict]) -> bool:
 
 
 def clean(reply: str) -> str:
-    """Drop role prefixes and anything after a second speaker; trim to whole sentences that fit."""
+    """Drop role prefixes, list bullets (the prompt shows examples as a list) and anything
+    after a second speaker; trim to whole sentences that fit."""
     text = ROLE_PREFIX.sub("", reply.strip())
+    text = re.sub(r"^[-*•]\s+", "", text)
     text = re.split(r"\n|\b(?:Caller|Scammer)\s*:", text)[0].strip().strip('"').strip()
     if len(text) <= MAX_CHARS:
         return text
