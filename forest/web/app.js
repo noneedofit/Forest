@@ -58,16 +58,40 @@ function renderIntel(rows) {
     .join("");
 }
 
-function addChat(e) {
+function chatNote(cls, html) {
   const box = $("chat");
   if (box.querySelector(".empty")) box.innerHTML = "";
   const div = document.createElement("div");
-  div.className = "msg " + (e.role === "agent" ? "agent" : "scammer");
-  let html = esc(e.text);
-  for (const ent of e.entities || []) html = html.replace(esc(ent), `<mark>${esc(ent)}</mark>`);
+  div.className = cls;
   div.innerHTML = html;
   box.append(div);
   box.scrollTop = box.scrollHeight;
+  return div;
+}
+
+function newSession(e) {
+  $("chat").innerHTML = "";
+  chatNote("note", `Reported number · ${esc(e.caller)}`);
+}
+
+// Granite takes a few seconds per reply, so show that Kamla is "typing" meanwhile.
+function addChat(e) {
+  const typing = $("chat").querySelector(".typing");
+  if (typing) typing.remove();
+  let html = esc(e.text);
+  for (const ent of e.entities || []) html = html.replace(esc(ent), `<mark>${esc(ent)}</mark>`);
+  chatNote("msg " + (e.role === "agent" ? "agent" : "scammer"), html);
+  if (e.role === "scammer") chatNote("msg agent typing", "Kamla is typing…");
+}
+
+function showReport(r) {
+  const ids = r.ids.map((i) => esc(i.display)).join(", ") || "none";
+  chatNote(
+    "report",
+    `<b>Report for the 1930 helpline</b> <small>${r.summary_by === "granite" ? "written by Granite" : "template"}</small>` +
+      `<p>${esc(r.summary)}</p><small>${esc(r.scam_type.replace("_", " "))} · ids: ${ids} · ` +
+      `${r.turns} turns · ${r.scammer_minutes} scammer min</small>`
+  );
 }
 
 function showStats(s) {
@@ -88,17 +112,24 @@ async function init() {
   const badge = $("b-platform");
   const nnpa = h.nnpa && h.tree_format.startsWith("zdnn");
   badge.textContent = `${h.machine} · ${nnpa ? "Snap ML on Telum II NNPA (zDNN)" : "Snap ML"}` +
-    (h.granite_loaded ? " · Granite" : "");
+    (h.granite_loaded ? ` · ${h.granite_model.replace(/-be\.\w+\.gguf$|\.gguf$/, "")}` : "");
   badge.classList.add("ok");
   showStats(await (await fetch("/stats")).json());
   await refreshIntel();
 
   const es = new EventSource("/events");
-  es.addEventListener("decision", (m) => queue.push(JSON.parse(m.data)));
+  es.addEventListener("decision", (m) => {
+    const e = JSON.parse(m.data);
+    // the victim's payment is the point of the demo, so it skips the display backlog
+    if (e.victim) queue.unshift(e);
+    else queue.push(e);
+  });
   setInterval(drain, 120);
   es.addEventListener("stats", (m) => showStats(JSON.parse(m.data)));
   es.addEventListener("intel", () => refreshIntel());
   es.addEventListener("chat", (m) => addChat(JSON.parse(m.data)));
+  es.addEventListener("session", (m) => newSession(JSON.parse(m.data)));
+  es.addEventListener("report", (m) => showReport(JSON.parse(m.data)));
   setInterval(refreshIntel, 5000);
 }
 
