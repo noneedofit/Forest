@@ -1,0 +1,28 @@
+# Fictitious collection handles the scammer scenarios hand out. make_aliases.py maps each handle
+# to a mule-like receiver account in the payment data, so a harvested handle blocks real rows.
+handles:
+  - inspector.verify22@okaxis
+  - cbi.casedesk@oksbi
+  - narcotics.clear07@okicici
+  - kbc.prize.claim@okhdfc
+  - lucky.draw.2026@ybl
+  - customs.release11@okaxis
+  - parcel.fee.desk@oksbi
+  - kyc.update.helpdesk@okicici
+  - sbi.secure.verify@okhdfc
+  - rbi.safe.account@ybl
+  - court.notice.dept@okaxis
+  - trai.line.resolve@oksbi
+  - upi.refund.center@okicici
+  - airport.hold.fee@okhdfc
+  - bank.reward.points@ybl
+  - cyber.cell.verify@okaxis
+  - dhl.parcel.clear@oksbi
+  - prize.tax.office@okicici
+  - aadhaar.relink.desk@okhdfc
+  - gift.claim.india@ybl
+bank_accounts:
+  - account: "900011112222"
+    ifsc: "FRST0000001"
+  - account: "900033334444"
+    ifsc: "FRST0000002"
