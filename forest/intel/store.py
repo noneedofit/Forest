@@ -169,6 +169,25 @@ class Store:
             "scammer_minutes": minutes / 60,
         }
 
+    def start_session(self, session_id: str, scenario: str | None) -> None:
+        with self._lock:
+            self.db.execute(
+                "INSERT INTO sessions (id, scenario, started, turns, scammer_seconds)"
+                " VALUES (?, ?, ?, 0, 0)",
+                (session_id, scenario, now()),
+            )
+            self.db.commit()
+
+    def update_session(
+        self, session_id: str, turns: int, scammer_seconds: float, ended: bool
+    ) -> None:
+        with self._lock:
+            self.db.execute(
+                "UPDATE sessions SET turns = ?, scammer_seconds = ?, ended = ? WHERE id = ?",
+                (turns, scammer_seconds, now() if ended else None, session_id),
+            )
+            self.db.commit()
+
     def add_message(self, session_id: str, role: str, body: str) -> None:
         with self._lock:
             self.db.execute(
