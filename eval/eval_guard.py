@@ -10,8 +10,9 @@ from pathlib import Path
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import average_precision_score, roc_auc_score
-from sklearn.pipeline import make_pipeline
+from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import StandardScaler
+from snapml import BoostingMachineClassifier
 
 from forest.guard.load import load_aml
 from forest.guard.score import Guard, decide, load_model
@@ -57,7 +58,23 @@ def metrics(y: np.ndarray, p: np.ndarray, t_pause: float, t_hold: float) -> dict
     }
 
 
-def fit_lr(x: np.ndarray, y: np.ndarray):
+def by_day(y: np.ndarray, p: np.ndarray, ts: np.ndarray, t_pause: float, t_hold: float) -> dict:
+    """Flag rates per calendar day, to show where the test period drifts from the budget."""
+    days = ts // 86400
+    out = {}
+    for d in np.unique(days):
+        s = days == d
+        day = datetime.fromtimestamp(int(d) * 86400, tz=UTC).strftime("%Y-%m-%d")
+        out[day] = {
+            "rows": int(s.sum()),
+            "positives": int(y[s].sum()),
+            "pause_rate": float((p[s] >= t_pause).mean()),
+            "hold_rate": float((p[s] >= t_hold).mean()),
+        }
+    return out
+
+
+def fit_lr(x: np.ndarray, y: np.ndarray) -> Pipeline:
     return make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000)).fit(x, y)
 
 
@@ -70,7 +87,15 @@ def positives_per_day(y: np.ndarray, ts: np.ndarray) -> dict[str, int]:
     return out
 
 
-def run_split(x, y, tr, va, te, num_round: int, max_depth: int) -> dict:
+def run_split(
+    x: np.ndarray,
+    y: np.ndarray,
+    tr: np.ndarray,
+    va: np.ndarray,
+    te: np.ndarray,
+    num_round: int,
+    max_depth: int,
+) -> dict:
     """Same recipe as train.py on an arbitrary split: subsample, fit, val thresholds, test."""
     tr_s = subsample(tr, y)
     model = fit_boosting(x[tr_s], y[tr_s], num_round, max_depth)
@@ -79,7 +104,9 @@ def run_split(x, y, tr, va, te, num_round: int, max_depth: int) -> dict:
     return metrics(y[te], model.predict_proba(x[te])[:, 1], t_pause, t_hold)
 
 
-def replay_check(model, th: dict, x: np.ndarray, start: int, n: int = 20_000) -> dict:
+def replay_check(
+    model: BoostingMachineClassifier, th: dict, x: np.ndarray, start: int, n: int = 20_000
+) -> dict:
     """Push the first `n` test payments through Guard.score from the saved end-of-val state.
     Its decisions should match the offline batch scores row for row."""
     df = load_aml(RAW).iloc[start : start + n]
@@ -133,9 +160,11 @@ def main() -> None:
     th = json.loads((ARTIFACTS / "thresholds.json").read_text())
 
     model = load_model(ARTIFACTS / "guard_model.pmml")
+    p_te = model.predict_proba(x[te])[:, 1]
     snap = {
         "val": metrics(y[va], model.predict_proba(x[va])[:, 1], th["t_pause"], th["t_hold"]),
-        "test": metrics(y[te], model.predict_proba(x[te])[:, 1], th["t_pause"], th["t_hold"]),
+        "test": metrics(y[te], p_te, th["t_pause"], th["t_hold"]),
+        "test_by_day": by_day(y[te], p_te, ts[te], th["t_pause"], th["t_hold"]),
     }
 
     tr_s = subsample(tr, y)
@@ -179,8 +208,10 @@ def main() -> None:
         "positives_per_day": positives_per_day(y, ts),
         "snapml_boosting": snap,
         "logreg_baseline": {"test": lr_test},
-        "random_split_leaky": {
-            "note": "same recipe on a shuffled 60/20/20 split of Sep 1-10; mixes future into train",
+        "random_split": {
+            "note": "same recipe on a shuffled 60/20/20 split of Sep 1-10. It scores no higher "
+            "than the time split: the features only look backwards, so shuffling rows has "
+            "nothing to leak. The leakage example is PaySim (leakage.json).",
             "test": rand,
         },
         "live_replay": replay,
@@ -193,7 +224,7 @@ def main() -> None:
     print(row("Snap ML boosting, test (time split)", snap["test"]))
     print(row("Snap ML boosting, val", snap["val"]))
     print(row("Logistic regression, test", lr_test))
-    print(row("Snap ML, random split (leaky)", rand))
+    print(row("Snap ML, random split", rand))
 
 
 if __name__ == "__main__":
