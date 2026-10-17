@@ -1,0 +1,225 @@
+{
+  "machine": "IBM z17, 3 vCPU",
+  "models": [
+    {
+      "model": "granite-4.0-h-350m-base-be.f16.gguf",
+      "mode": "completion",
+      "n_threads": 2,
+      "load_s": 0.8,
+      "peak_rss_gb": 2.09,
+      "first_reply_s": 12.72,
+      "later_reply_s_mean": 3.7,
+      "decode_tok_per_s_mean": 7.86,
+      "turns": [
+        {
+          "move": "confused_engage",
+          "prompt_tokens": 448,
+          "seconds": 12.72,
+          "tokens": 28,
+          "decode_tok_per_s": 7.87,
+          "reply": "Aarogya setee, ek case ke baare mein call kiya hai, main kya karna chahta hoon?"
+        },
+        {
+          "move": "scared_comply",
+          "prompt_tokens": 519,
+          "seconds": 4.17,
+          "tokens": 25,
+          "decode_tok_per_s": 7.6,
+          "reply": "Please don't do anything to me beta, I am alone at home. Tell me slowly, how do I fix it?"
+        },
+        {
+          "move": "stall_credential",
+          "prompt_tokens": 584,
+          "seconds": 3.59,
+          "tokens": 22,
+          "decode_tok_per_s": 8.0,
+          "reply": "Beta, no message has come and my glasses are in the other room. Can I pay some other way?"
+        },
+        {
+          "move": "confirm_and_ask_alt",
+          "prompt_tokens": 653,
+          "seconds": 3.35,
+          "tokens": 19,
+          "decode_tok_per_s": 7.95,
+          "reply": "inspector.verify22@okaxis... haan ji, I typed it but it is showing failed. Is there any other account?"
+        }
+      ]
+    },
+    {
+      "model": "granite-4.0-h-350m-Q8_0.gguf",
+      "mode": "chat",
+      "n_threads": 2,
+      "load_s": 4.5,
+      "peak_rss_gb": 0.49,
+      "first_reply_s": 3.07,
+      "later_reply_s_mean": 3.73,
+      "decode_tok_per_s_mean": 1.19,
+      "turns": [
+        {
+          "move": "confused_engage",
+          "prompt_tokens": 175,
+          "seconds": 3.07,
+          "tokens": 3,
+          "decode_tok_per_s": 4.75,
+          "reply": "Haan ji"
+        },
+        {
+          "move": "scared_comply",
+          "prompt_tokens": 224,
+          "seconds": 3.22,
+          "tokens": 1,
+          "decode_tok_per_s": 0.0,
+          "reply": "Beta"
+        },
+        {
+          "move": "stall_credential",
+          "prompt_tokens": 268,
+          "seconds": 3.6,
+          "tokens": 1,
+          "decode_tok_per_s": 0.0,
+          "reply": "Beta"
+        },
+        {
+          "move": "confirm_and_ask_alt",
+          "prompt_tokens": 322,
+          "seconds": 4.37,
+          "tokens": 1,
+          "decode_tok_per_s": 0.0,
+          "reply": "Beta"
+        }
+      ]
+    },
+    {
+      "model": "granite-4.0-h-1b-bf16-be.gguf",
+      "mode": "chat",
+      "n_threads": 2,
+      "load_s": 32.8,
+      "peak_rss_gb": 6.45,
+      "first_reply_s": 29.03,
+      "later_reply_s_mean": 28.27,
+      "decode_tok_per_s_mean": 1.39,
+      "turns": [
+        {
+          "move": "confused_engage",
+          "prompt_tokens": 175,
+          "seconds": 29.03,
+          "tokens": 25,
+          "decode_tok_per_s": 2.06,
+          "reply": "\u0939\u093e\u0901 \u091c\u0940, \u092e\u0941\u091d\u0947 \u0928\u0939\u0940\u0902 \u092a\u0924\u093e \u0915\u094c\u0928 \u092c\u094b\u0932 \u0930\u0939\u093e"
+        },
+        {
+          "move": "scared_comply",
+          "prompt_tokens": 304,
+          "seconds": 29.35,
+          "tokens": 20,
+          "decode_tok_per_s": 1.93,
+          "reply": "\u092e\u0941\u091d\u0947 \u092c\u0939\u0941\u0924 \u091a\u093f\u0902\u0924\u093e \u0939\u0948, \u092c\u0939\u0941\u0924!"
+        },
+        {
+          "move": "stall_credential",
+          "prompt_tokens": 410,
+          "seconds": 26.75,
+          "tokens": 4,
+          "decode_tok_per_s": 1.56,
+          "reply": "\u092e\u0941\u091d\u0947"
+        },
+        {
+          "move": "confirm_and_ask_alt",
+          "prompt_tokens": 475,
+          "seconds": 28.72,
+          "tokens": 0,
+          "decode_tok_per_s": 0.0,
+          "reply": ""
+        }
+      ]
+    },
+    {
+      "model": "granite-4.0-h-1b-Q8_0.gguf",
+      "mode": "chat",
+      "n_threads": 2,
+      "load_s": 19.1,
+      "peak_rss_gb": 1.69,
+      "first_reply_s": 29.88,
+      "later_reply_s_mean": 25.4,
+      "decode_tok_per_s_mean": 0.92,
+      "turns": [
+        {
+          "move": "confused_engage",
+          "prompt_tokens": 175,
+          "seconds": 29.88,
+          "tokens": 25,
+          "decode_tok_per_s": 1.37,
+          "reply": "\u0939\u093e\u0901 \u091c\u0940, \u092e\u0941\u091d\u0947 \u0928\u0939\u0940\u0902 \u092a\u0924\u093e \u0915\u094c\u0928 \u092c\u094b\u0932 \u0930\u0939\u093e"
+        },
+        {
+          "move": "scared_comply",
+          "prompt_tokens": 304,
+          "seconds": 31.06,
+          "tokens": 20,
+          "decode_tok_per_s": 1.27,
+          "reply": "\u092e\u0941\u091d\u0947 \u092c\u0939\u0941\u0924 \u091a\u093f\u0902\u0924\u093e \u0939\u0948, \u092c\u0939\u0941\u0924!"
+        },
+        {
+          "move": "stall_credential",
+          "prompt_tokens": 410,
+          "seconds": 22.52,
+          "tokens": 4,
+          "decode_tok_per_s": 1.05,
+          "reply": "\u092e\u0941\u091d\u0947"
+        },
+        {
+          "move": "confirm_and_ask_alt",
+          "prompt_tokens": 475,
+          "seconds": 22.63,
+          "tokens": 0,
+          "decode_tok_per_s": 0.0,
+          "reply": ""
+        }
+      ]
+    },
+    {
+      "model": "granite-3.3-2b-instruct-be.Q4_K_M.gguf",
+      "mode": "chat",
+      "n_threads": 2,
+      "load_s": 20.1,
+      "peak_rss_gb": 1.76,
+      "first_reply_s": 62.3,
+      "later_reply_s_mean": 56.18,
+      "decode_tok_per_s_mean": 0.86,
+      "turns": [
+        {
+          "move": "confused_engage",
+          "prompt_tokens": 197,
+          "seconds": 62.3,
+          "tokens": 32,
+          "decode_tok_per_s": 0.88,
+          "reply": "Oh, beta, kaise hain? Kya mujhe koi case mein baat karna padrha? (Kamla De"
+        },
+        {
+          "move": "scared_comply",
+          "prompt_tokens": 285,
+          "seconds": 56.12,
+          "tokens": 32,
+          "decode_tok_per_s": 0.87,
+          "reply": "Oh, beta, kaisa dina ho raha hai? Kya mujhe koi dusre ki aadhar se zy"
+        },
+        {
+          "move": "stall_credential",
+          "prompt_tokens": 359,
+          "seconds": 54.6,
+          "tokens": 31,
+          "decode_tok_per_s": 0.83,
+          "reply": "Oh, beta, mere phone mein OTP nahi aaya. Kaise ho sakta ki mera account zy\u093e\u0926"
+        },
+        {
+          "move": "confirm_and_ask_alt",
+          "prompt_tokens": 461,
+          "seconds": 57.83,
+          "tokens": 32,
+          "decode_tok_per_s": 0.85,
+          "reply": "Oh beta, mera phone mein failed aaya. Kisi ne mujhe Rs 49,999 ki transfer kiya? K"
+        }
+      ]
+    }
+  ]
+}
