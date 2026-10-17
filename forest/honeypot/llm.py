@@ -1,8 +1,8 @@
 """Granite through llama.cpp (zDNN build in the base image), with a time budget per reply.
 
-Benchmarks on the z17 VM (2 threads, see eval/results/granite_bench.json) picked the 350M base
-f16 model: ~8 tok/s and a few seconds per reply. The 1B bf16 managed ~1.5-1.9 tok/s and needs
-~6 GB of RAM, which doesn't fit next to the payment guard on an 8 GB VM.
+Benchmarks on the z17 VM (2 threads, eval/results/granite_bench.json) picked the 350M base f16
+model: ~8 tok/s, about 4 s per reply once the prompt is cached. The 1B bf16 decoded at ~1.4 tok/s
+(~28 s per reply) with a 6.4 GB peak, which doesn't fit next to the payment guard on an 8 GB VM.
 """
 
 import threading
@@ -16,8 +16,8 @@ N_THREADS = 2  # leaves a core for payment scoring
 N_CTX = 2048
 MAX_TOKENS = 32
 TEMPERATURE = 0.7
-# Measured on the VM: a first turn takes 10-12 s (whole prompt), later turns 2-5 s because
-# the prompt prefix is reused. Past this the reply is dropped for a hand-written line.
+# Measured on the VM: a first turn takes ~13 s (whole prompt), later turns ~4 s because the
+# prompt prefix is reused. Past this the reply is dropped for a hand-written line.
 BUDGET_S = 20.0
 
 
@@ -35,7 +35,11 @@ class Granite:
     contexts aren't thread-safe."""
 
     def __init__(
-        self, path: Path | str | None = None, n_threads: int = N_THREADS, budget: float = BUDGET_S
+        self,
+        path: Path | str | None = None,
+        n_threads: int = N_THREADS,
+        budget: float = BUDGET_S,
+        max_tokens: int = MAX_TOKENS,
     ) -> None:
         from llama_cpp import Llama
 
@@ -44,14 +48,16 @@ class Granite:
         # base models have no chat format worth using; they get a completion prompt
         self.chat = "base" not in self.name
         self.budget = budget
+        self.max_tokens = max_tokens
         self.llm = Llama(model_path=str(self.path), n_ctx=N_CTX, n_threads=n_threads, verbose=False)
         self.lock = threading.Lock()
 
     def generate(
-        self, prompt: str | list[dict], max_tokens: int = MAX_TOKENS, stop: list[str] | None = None
+        self, prompt: str | list[dict], max_tokens: int | None = None, stop: list[str] | None = None
     ) -> Generation:
         """Stream tokens until a stop string, `max_tokens` or the time budget."""
         stop = stop or ["\n"]
+        max_tokens = max_tokens or self.max_tokens
         with self.lock:
             start = time.perf_counter()
             if self.chat:
@@ -85,9 +91,11 @@ class Granite:
         )
 
 
-def load(path: Path | str | None = None) -> Granite | None:
+def load(
+    path: Path | str | None = None, budget: float = BUDGET_S, max_tokens: int = MAX_TOKENS
+) -> Granite | None:
     """The model if its file exists, else None (the agent then uses its hand-written lines)."""
     p = Path(path or config.MODEL_PATH)
     if not p.exists():
         return None
-    return Granite(p)
+    return Granite(p, budget=budget, max_tokens=max_tokens)

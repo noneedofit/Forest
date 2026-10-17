@@ -37,7 +37,7 @@ def record(turns: list[dict], text: str, out: dict) -> None:
 
 
 def run_local(scenarios: list[dict], args) -> list[dict]:
-    granite = None if args.templates else llm.load(args.model)
+    granite = None if args.templates else llm.load(args.model, args.budget, args.max_tokens)
     print(f"model: {granite.name if granite else 'templates only'}")
     agent = Agent(Store(":memory:"), granite, seed=args.seed)
     reported = {sc["id"] for sc in load_all().values() if sc["reported"]}
@@ -102,6 +102,8 @@ def main() -> None:
     ap.add_argument("--pace", type=float, default=2.0, help="seconds between turns in --demo")
     ap.add_argument("--model", help="GGUF path (default FOREST_MODEL_PATH)")
     ap.add_argument("--templates", action="store_true", help="hand-written lines only")
+    ap.add_argument("--budget", type=float, default=llm.BUDGET_S, help="seconds per reply")
+    ap.add_argument("--max-tokens", type=int, default=llm.MAX_TOKENS)
     ap.add_argument("--out", type=Path, help="write the transcripts here as JSON")
     args = ap.parse_args()
 
