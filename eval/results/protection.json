@@ -1,0 +1,81 @@
+{
+  "assumption": "intel arrives `delay_minutes` after the first laundering payment reaches the account; simulated, not observed",
+  "model_only": {
+    "laundering_payments": 956,
+    "held": 461,
+    "paused": 287,
+    "laundering_inr": 31200655905,
+    "held_inr": 25410458049
+  },
+  "with_intel": [
+    {
+      "delay_minutes": 30,
+      "accounts_with_laundering": 20,
+      "laundering_after": 104,
+      "model_held": 68,
+      "model_paused": 24,
+      "extra_held": 36,
+      "laundering_after_inr": 1332459120,
+      "model_held_inr": 1308714150,
+      "extra_held_inr": 23744971,
+      "benign_collateral": {
+        "payments_held": 56,
+        "rupees_held": 5945000031
+      }
+    },
+    {
+      "delay_minutes": 60,
+      "accounts_with_laundering": 20,
+      "laundering_after": 103,
+      "model_held": 67,
+      "model_paused": 24,
+      "extra_held": 36,
+      "laundering_after_inr": 1331390042,
+      "model_held_inr": 1307645071,
+      "extra_held_inr": 23744971,
+      "benign_collateral": {
+        "payments_held": 56,
+        "rupees_held": 5945000031
+      }
+    },
+    {
+      "delay_minutes": 240,
+      "accounts_with_laundering": 20,
+      "laundering_after": 92,
+      "model_held": 63,
+      "model_paused": 17,
+      "extra_held": 29,
+      "laundering_after_inr": 1323762555,
+      "model_held_inr": 1304794060,
+      "extra_held_inr": 18968495,
+      "benign_collateral": {
+        "payments_held": 54,
+        "rupees_held": 5944989506
+      }
+    }
+  ],
+  "live": {
+    "scenario": "kyc_bank",
+    "victim_payment_inr": 85000,
+    "before_intel": {
+      "decision": "pause",
+      "reasons": [
+        "AMOUNT_UNUSUAL",
+        "NEW_PAYEE",
+        "BURST"
+      ]
+    },
+    "after_intel": {
+      "decision": "hold",
+      "reasons": [
+        "INTEL_MATCH",
+        "AMOUNT_UNUSUAL",
+        "NEW_PAYEE"
+      ]
+    },
+    "seconds_from_first_scammer_message_to_id_stored": 33.7,
+    "turns_until_stored": 4,
+    "seconds_from_id_stored_to_hold_response": 0.0015,
+    "note": "chat time uses the real 350M model on this VM; a real scammer types slower"
+  }
+}
