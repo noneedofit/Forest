@@ -10,7 +10,7 @@ steps:
     lines:
       - "Hi madam, part time job offer hai. Roz ghar baithe Rs 3,000 se Rs 5,000 kamaiye, sirf videos like karne hain."
       - "Hello, we have a part-time job for you. Earn up to Rs 5,000 daily by rating products online, no experience needed."
-      - "Namaste ji, aapko hamari task team mein select kiya gaya hai. Pehle teen task free hain."
+      - "Namaste ji, aap hamari task team mein selected hain. Pehle teen task free hain."
   - stage: smalltalk
     lines:
       - "Madam pehla task complete ho gaya, aapke wallet mein Rs 150 aa gaye hain. Dekhiye kitna aasan hai."

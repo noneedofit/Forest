@@ -27,4 +27,4 @@ steps:
     lines:
       - "Nani woh id kaam nahi kar rahi. Yeh doosra UPI hai, {upi}, usme bhej do jaldi."
       - "That one is not working nani. Send it to {upi} please, they are waiting."
-      - "Nani {spoken} par try karo, please jaldi karo."
+      - "Nani UPI {spoken} par try karo, please jaldi karo."

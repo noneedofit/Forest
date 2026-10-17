@@ -11,7 +11,7 @@ steps:
     lines:
       - "Hello madam, main SBI customer care se Rakesh Verma bol raha hoon. Aapke account ke baare mein zaroori baat karni hai."
       - "Good morning madam, this is Rakesh from SBI customer care. I am calling regarding your KYC."
-      - "Namaste ji, SBI head office se call hai. Aapka KYC update pending dikha raha hai."
+      - "Namaste ji, SBI customer care se call hai. Aapka KYC update pending dikha raha hai."
   - stage: threat
     lines:
       - "Madam aapka KYC aaj expire ho raha hai. Agar update nahi hua toh account block ho jayega aur pension band ho jayegi."
@@ -33,7 +33,7 @@ steps:
     lines:
       - "Woh id error de raha hai. Yeh dusra UPI use kariye, {upi}, aur Rs 10 transfer kariye."
       - "That one failed on our side. Please pay to {upi} instead, only Rs 10 for verification."
-      - "Madam {spoken} par try kariye, wahan se turant ho jayega."
+      - "Madam UPI {spoken} par try kariye, wahan se turant ho jayega."
   - stage: payment_ask
     reveal: 2
     lines:

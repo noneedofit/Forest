@@ -28,7 +28,7 @@ steps:
     lines:
       - "Woh UPI abhi kaam nahi kar raha madam. Doosra id likhiye, {upi}, aur wahan transfer kariye."
       - "That id is under maintenance. Use this one instead, {upi}, and send the amount right now."
-      - "Madam server busy hai, ek aur id deta hoon, {spoken}. Jaldi kariye, time kam hai."
+      - "Madam server busy hai, ek aur UPI id deta hoon, {spoken}. Jaldi kariye, time kam hai."
   - stage: payment_ask
     reveal: 2
     lines:

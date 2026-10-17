@@ -4,7 +4,7 @@ import re
 
 KEYWORDS = {
     "payment_ask": [
-        "send", "transfer", "pay", "payment", "bhejo", "bhej do", "jama", "deposit", "upi",
+        "send", "transfer", "pay", "payment", r"bhej\w*", "jama", "deposit", "upi",
         "scan", "qr", "verification amount", "refundable",
     ],
     "threat": [

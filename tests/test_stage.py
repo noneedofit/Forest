@@ -26,3 +26,7 @@ def test_stage_examples(text, expected):
 
 def test_payment_ask_wins_over_threat():
     assert stage("Pay now or police will come") == "payment_ask"
+
+
+def test_bhej_forms_count_as_payment():
+    assert stage("Rs 10 abhi bhej dijiye") == "payment_ask"
