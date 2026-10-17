@@ -102,6 +102,18 @@ def _prune_in(rec: list, t: int) -> None:
         rec[IN_SUM] = 0.0
 
 
+def _copy_rec(rec: list | None) -> list | None:
+    if rec is None:
+        return None
+    out = list(rec)
+    for slot in (OUT, IN):
+        if out[slot] is not None:
+            out[slot] = deque(out[slot])
+    if out[IN_SENDERS] is not None:
+        out[IN_SENDERS] = dict(out[IN_SENDERS])
+    return out
+
+
 class FeatureState:
     """Per-account history needed to featurise the next payment."""
 
@@ -223,6 +235,23 @@ class FeatureState:
         senders[s] = senders.get(s, 0) + 1
         drec[IN_NEW] += new_payee
         return feats
+
+    def save(self, s: int, d: int) -> tuple:
+        """Copy what `step` will touch for accounts s and d, so a stopped payment can be undone."""
+        return (
+            s,
+            d,
+            _copy_rec(self.accts[s]),
+            _copy_rec(self.accts[d]),
+            ((s << 32) | d) in self.pairs,
+        )
+
+    def restore(self, saved: tuple) -> None:
+        s, d, srec, drec, had_pair = saved
+        self.accts[s] = srec
+        self.accts[d] = drec
+        if not had_pair:
+            self.pairs.discard((s << 32) | d)
 
     def update_and_featurise(self, txn: dict) -> list[float]:
         """Live path. `txn` needs ts, src, dst, amount_usd, and optionally from_bank, to_bank,

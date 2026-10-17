@@ -118,3 +118,13 @@ def test_model_only_stop_gets_fallback_reason(artifacts, monkeypatch):
     d = guard.score(TXN)
     assert d.decision == "hold"
     assert d.reasons == [FALLBACK]
+
+
+def test_stopped_payment_leaves_no_trace(artifacts):
+    guard = Guard(artifacts, intel=FlagOne("MULE1"))
+    bad = {**TXN, "dst": "MULE1"}
+    assert guard.score(bad, rollback_stopped=True).decision == "hold"
+    assert guard.state.accts[guard.state.ids["MULE1"]] is None
+    again = guard.score(bad, rollback_stopped=True)
+    assert again.decision == "hold"
+    assert guard.score({**TXN, "dst": "C"}, rollback_stopped=True).decision in {"allow", "pause"}

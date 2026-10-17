@@ -133,3 +133,22 @@ def test_load_aml_epoch_seconds_and_usd(tmp_path):
     assert df["from_bank"].astype(str).tolist() == ["00795", "010"]
     assert df["amount_usd"].tolist() == pytest.approx([5.0, 11.718])
     assert df["y"].tolist() == [0, 1]
+
+
+def test_restore_undoes_a_stopped_payment():
+    st = FeatureState()
+    pay(st, T0, "A", "X", 100)
+    pay(st, T0 + 60, "B", "X", 100)
+    s, d = st.account_id("A"), st.account_id("M")
+    saved = st.save(s, d)
+    pay(st, T0 + 120, "A", "M", 900)
+    st.restore(saved)
+
+    fresh = FeatureState()
+    pay(fresh, T0, "A", "X", 100)
+    pay(fresh, T0 + 60, "B", "X", 100)
+    a = pay(st, T0 + 180, "A", "M", 50)
+    b = pay(fresh, T0 + 180, "A", "M", 50)
+    assert a == b
+    assert a["s_new_payee"] == 1
+    assert a["r_age_hours"] == 0

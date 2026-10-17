@@ -83,9 +83,11 @@ class Guard:
         self.intel = intel
         self._lock = threading.Lock()
 
-    def score(self, txn: dict) -> Decision:
+    def score(self, txn: dict, rollback_stopped: bool = False) -> Decision:
         """`txn` needs REQUIRED, with dataset names for currency ("Rupee") and fmt ("ACH").
-        Optional: currency_recv (defaults to currency), dst_handle (UPI alias for intel)."""
+        Optional: currency_recv (defaults to currency), dst_handle (UPI alias for intel).
+        With `rollback_stopped`, a paused or held payment is taken back out of the feature
+        state, because the money never moved."""
         start = time.perf_counter()
         missing = [k for k in REQUIRED if txn.get(k) is None]
         if missing:
@@ -99,12 +101,19 @@ class Guard:
             if t < self.clock:
                 raise ValueError("payment is older than the last one scored; restart the Guard")
             self.clock = t
+            saved = None
+            if rollback_stopped:
+                saved = self.state.save(
+                    self.state.account_id(txn["src"]), self.state.account_id(txn["dst"])
+                )
             feats = self.state.update_and_featurise(row)
             p = float(self.model.predict_proba(np.array([feats], dtype=np.float32))[0, 1])
-        intel_hit = self.intel is not None and self.intel.is_flagged(
-            dst=txn["dst"], handle=txn.get("dst_handle")
-        )
-        decision = decide(p, self.t_pause, self.t_hold, intel_hit)
+            intel_hit = self.intel is not None and self.intel.is_flagged(
+                dst=txn["dst"], handle=txn.get("dst_handle")
+            )
+            decision = decide(p, self.t_pause, self.t_hold, intel_hit)
+            if saved is not None and decision != "allow":
+                self.state.restore(saved)
         reasons = []
         if decision != "allow":
             reasons = reason_codes(dict(zip(FEATURES, feats)), intel_hit) or [FALLBACK]
