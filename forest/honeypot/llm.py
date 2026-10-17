@@ -24,6 +24,8 @@ REPEAT_PENALTY = 1.15
 # Measured on the VM: a first turn takes ~13 s (whole prompt), later turns ~4 s because the
 # prompt prefix is reused. Past this the reply is dropped for a hand-written line.
 BUDGET_S = 20.0
+# The 2B instruct summary: ~0.7 tok/s on the VM, about 90 tokens plus the prompt.
+SUMMARY_BUDGET_S = 300.0
 
 
 @dataclass

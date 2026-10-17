@@ -13,6 +13,7 @@ from pathlib import Path
 
 import httpx
 
+from forest import config
 from forest.honeypot import llm
 from forest.honeypot.agent import Agent
 from forest.honeypot.scenario import load_all
@@ -38,8 +39,13 @@ def record(turns: list[dict], text: str, out: dict) -> None:
 
 def run_local(scenarios: list[dict], args) -> list[dict]:
     granite = None if args.templates else llm.load(args.model, args.budget, args.max_tokens)
+    summarizer = None
+    if granite and args.summary_model != "none":
+        same = Path(args.summary_model).name == granite.name
+        summarizer = granite if same else llm.load(args.summary_model, llm.SUMMARY_BUDGET_S)
     print(f"model: {granite.name if granite else 'templates only'}")
-    agent = Agent(Store(":memory:"), granite, seed=args.seed)
+    print(f"summary model: {summarizer.name if summarizer else 'same as replies'}")
+    agent = Agent(Store(":memory:"), granite, seed=args.seed, summarizer=summarizer)
     reported = {sc["id"] for sc in load_all().values() if sc["reported"]}
     results = []
     for sc in scenarios:
@@ -48,7 +54,8 @@ def run_local(scenarios: list[dict], args) -> list[dict]:
         began = time.perf_counter()
         s = play(agent, sc, reported, seed=args.seed, on_turn=partial(record, turns))
         report = agent.report(s)
-        print(f"\nreport ({report['summary_by']}): {report['summary']}")
+        print(f"\nreport ({report['summary_by']}, {report.get('summary_seconds', 0)}s): ", end="")
+        print(report["summary"])
         print(
             f"turns {s.state.turns}, ids {len(s.state.ids)}, scammer minutes "
             f"{s.state.scammer_seconds / 60:.1f}, wall {time.perf_counter() - began:.0f}s"
@@ -87,7 +94,13 @@ def run_api(scenarios: list[dict], args) -> list[dict]:
                     break
                 time.sleep(args.pace)
                 text = sim.respond(out["reply"])
-            report = client.get(f"/honeypot/sessions/{sid}/report").raise_for_status().json()
+            url = f"/honeypot/sessions/{sid}/report"
+            report = client.get(url).raise_for_status().json()
+            waited = time.perf_counter()
+            # the 2B summary is written in the background after the last turn
+            while report["summary_by"] == "pending" and time.perf_counter() - waited < args.wait:
+                time.sleep(5)
+                report = client.get(url).raise_for_status().json()
             print(f"\nreport ({report['summary_by']}): {report['summary']}")
             results.append({"scenario": sc["id"], "session": sid, "turns": turns, "report": report})
     return results
@@ -104,6 +117,12 @@ def main() -> None:
     ap.add_argument("--templates", action="store_true", help="hand-written lines only")
     ap.add_argument("--budget", type=float, default=llm.BUDGET_S, help="seconds per reply")
     ap.add_argument("--max-tokens", type=int, default=llm.MAX_TOKENS)
+    ap.add_argument(
+        "--summary-model",
+        default=str(config.SUMMARY_MODEL_PATH),
+        help="GGUF for the incident summary, or 'none' to use the reply model",
+    )
+    ap.add_argument("--wait", type=float, default=300, help="seconds to wait for a --demo summary")
     ap.add_argument("--out", type=Path, help="write the transcripts here as JSON")
     args = ap.parse_args()
 

@@ -28,13 +28,22 @@ WINDOW = 13  # last 6 exchanges plus the new scammer message
 LOW_CONF = 0.6
 OTHER_BELOW = 0.4
 SUMMARY_CHARS = 500
-# One worked example, so the base model copies the shape and sticks to the facts it is given.
-SUMMARY_HEAD = (
-    "Incident reports for the 1930 cyber crime helpline (India).\n\n"
+# One worked example, so the model copies the shape and sticks to the facts it is given.
+EXAMPLE_FACTS = (
     "Scam type: lottery\nCaller script: hook, payment ask\nCollection ids: ra****@ybl (upi)\n"
     "Payments held by the bank guard: 1 (INTEL_MATCH)\n"
-    "Summary: A caller promising a lottery prize asked the victim to pay a fee to ra****@ybl. "
-    "The id is now flagged and 1 payment to it was held by the bank guard.\n\n"
+)
+EXAMPLE_SUMMARY = (
+    "A caller promising a lottery prize asked the victim to pay a fee to ra****@ybl. "
+    "The id is now flagged and 1 payment to it was held by the bank guard."
+)
+SUMMARY_HEAD = (
+    "Incident reports for the 1930 cyber crime helpline (India).\n\n"
+    f"{EXAMPLE_FACTS}Summary: {EXAMPLE_SUMMARY}\n\n"
+)
+SUMMARY_SYSTEM = (
+    "You write short incident reports in English for India's 1930 cyber crime helpline. "
+    "Use only the facts you are given; do not add dates, names, places or amounts."
 )
 
 # Unmistakable cues that override a low-confidence classifier label. The classifier is weak
@@ -54,7 +63,6 @@ OFF_CHARACTER = re.compile(
     r"\bi will give you\b",
     re.IGNORECASE,
 )
-
 
 # The varied prompt repeats the scammer's line just above Kamla's slot, and the small model
 # sometimes says it back as her own.
@@ -120,9 +128,12 @@ class Agent:
         publish: Callable[[str, dict], None] | None = None,
         seed: int | None = None,
         varied: bool = True,
+        summarizer: Granite | None = None,
     ) -> None:
         self.store = store
         self.granite = granite
+        # a bigger instruct model for the end-of-session report; the reply model if None
+        self.summarizer = summarizer
         self.publish = publish or (lambda event, data: None)
         self.rng = random.Random(seed)
         # varied=False keeps the fixed worked-example prompt (the eval's baseline)
@@ -272,8 +283,9 @@ class Agent:
         s.state.ended = True
         self.store.update_session(s.id, s.state.turns, s.state.scammer_seconds, True)
 
-    def report(self, s: Session) -> dict:
-        """Incident summary for the 1930 helpline, from the session's structured results."""
+    def report(self, s: Session, write: bool = True) -> dict:
+        """Incident summary for the 1930 helpline, from the session's structured results.
+        With `write=False` it has the template summary only, for a quick first version."""
         label = session_label(s.scammer_texts())
         hashes = {security.hash_id(h["normalized"]) for h in s.harvested}
         rows = [r for r in self.store.list_intel() if r["id_hash"] in hashes]
@@ -289,43 +301,71 @@ class Agent:
             "turns": s.state.turns,
             "scammer_minutes": round(s.state.scammer_seconds / 60, 1),
         }
-        facts["summary"], facts["summary_by"] = self._summary(facts)
-        return facts
+        facts |= {"summary": template_summary(facts), "summary_by": "template"}
+        return self.write_summary(facts) if write else facts
 
-    def _summary(self, f: dict) -> tuple[str, str]:
-        kind = f["scam_type"].replace("_", " ")
-        ids = ", ".join(f"{i['display']} ({i['kind']})" for i in f["ids"]) or "none"
-        stages = ", ".join(st.replace("_", " ") for st in f["stages"])
-        template = (
-            f"Reported {kind} scam. The caller went through {stages} and asked for money to "
-            f"{len(f['ids'])} collection id(s): {ids}. {f['holds']} payment(s) to these ids were "
-            f"held by the bank's guard (INTEL_MATCH)."
-        )
-        if not self.granite:
-            return template, "template"
+    def write_summary(self, f: dict) -> dict:
+        """The report with Granite's summary if it passes the checks, else the template one.
+        Slow with the 2B model (a minute or two), so the API runs it in the background."""
+        model = self.summary_model
+        out = {**f, "summary": template_summary(f), "summary_by": "template"}
+        if not model:
+            return out
+        kind, ids, stages = _summary_parts(f)
         facts = (
             f"Scam type: {kind}\nCaller script: {stages}\nCollection ids: {ids}\n"
             f"Payments held by the bank guard: {f['holds']} (INTEL_MATCH)\n"
         )
         allowed = guardrails.Whitelist()
         allowed.add(facts)
-        if self.granite.chat:
+        ask = "Write a two-sentence summary. Mention every collection id exactly as written."
+        if model.chat:
             prompt = [
-                {"role": "system", "content": "You write short incident reports for India's "
-                 "1930 cyber crime helpline."},
-                {"role": "user", "content": facts + "Write a two-sentence summary. Mention "
-                 "every collection id exactly as written."},
-            ]  # fmt: skip
+                {"role": "system", "content": SUMMARY_SYSTEM},
+                {"role": "user", "content": f"{EXAMPLE_FACTS}{ask}"},
+                {"role": "assistant", "content": EXAMPLE_SUMMARY},
+                {"role": "user", "content": f"{facts}{ask}"},
+            ]
+            stop = ["\n\n"]
         else:
             prompt = SUMMARY_HEAD + facts + "Summary:"
-        gen = self.granite.generate(prompt, max_tokens=80, stop=["\n"])
+            stop = ["\n"]
+        # cold and without the repeat penalty: the ids have to come out exactly as given
+        gen = model.generate(prompt, max_tokens=90, stop=stop, temperature=0.3, repeat_penalty=1.0)
         text = " ".join(gen.text.split())
         text = text[: text.rfind(".") + 1]
         sentences = [x.strip().lower() for x in re.split(r"(?<=\.)\s", text) if x.strip()]
-        repeats = len(set(sentences)) < len(sentences)
-        bad = set(guardrails.violations(text, allowed)) - {"too_long"}
+        problems = sorted(set(guardrails.violations(text, allowed)) - {"too_long"})
+        if gen.timed_out:
+            problems.append("timeout")
+        if len(set(sentences)) < len(sentences):
+            problems.append("repeats")
         # a summary that drops an id the helpline needs is worse than the template
-        missing = any(i["display"] not in text for i in f["ids"])
-        if gen.timed_out or bad or repeats or missing or not 40 <= len(text) <= SUMMARY_CHARS:
-            return template, "template"
-        return text, "granite"
+        if any(i["display"] not in text for i in f["ids"]):
+            problems.append("missing_id")
+        if not 40 <= len(text) <= SUMMARY_CHARS:
+            problems.append("length")
+        out |= {"summary_model": model.name, "summary_seconds": round(gen.seconds, 1)}
+        if problems:
+            return out | {"summary_problems": problems}
+        return out | {"summary": text, "summary_by": "granite"}
+
+    @property
+    def summary_model(self) -> Granite | None:
+        return self.summarizer or self.granite
+
+
+def _summary_parts(f: dict) -> tuple[str, str, str]:
+    kind = f["scam_type"].replace("_", " ")
+    ids = ", ".join(f"{i['display']} ({i['kind']})" for i in f["ids"]) or "none"
+    stages = ", ".join(st.replace("_", " ") for st in f["stages"])
+    return kind, ids, stages
+
+
+def template_summary(f: dict) -> str:
+    kind, ids, stages = _summary_parts(f)
+    return (
+        f"Reported {kind} scam. The caller went through {stages} and asked for money to "
+        f"{len(f['ids'])} collection id(s): {ids}. {f['holds']} payment(s) to these ids were "
+        f"held by the bank's guard (INTEL_MATCH)."
+    )
