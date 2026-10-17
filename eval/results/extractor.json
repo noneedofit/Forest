@@ -1,0 +1,338 @@
+{
+  "generated": "2026-10-17T14:59:21Z",
+  "headline": {
+    "classifier_cross_source_macro_f1_mean": 0.5276,
+    "extractor_per_kind_f1": {
+      "upi": 1.0,
+      "account": 0.9724,
+      "phone": 0.9828,
+      "url": 1.0,
+      "amount": 1.0
+    }
+  },
+  "extractor_planted": {
+    "n_messages": 300,
+    "per_kind": {
+      "upi": {
+        "support": 109,
+        "tp": 109,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "account": {
+        "support": 130,
+        "tp": 123,
+        "fp": 0,
+        "fn": 7,
+        "precision": 1.0,
+        "recall": 0.9462
+      },
+      "phone": {
+        "support": 114,
+        "tp": 114,
+        "fp": 4,
+        "fn": 0,
+        "precision": 0.9661,
+        "recall": 1.0
+      },
+      "url": {
+        "support": 134,
+        "tp": 134,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "amount": {
+        "support": 112,
+        "tp": 112,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    "recall_by_form": {
+      "account:dashed": 0.9714,
+      "account:plain": 0.9167,
+      "account:spaced": 0.9574,
+      "amount:hindi": 1.0,
+      "amount:k": 1.0,
+      "amount:lakh": 1.0,
+      "amount:rs": 1.0,
+      "amount:rupees": 1.0,
+      "phone:plain": 1.0,
+      "upi:plain": 1.0,
+      "upi:spoken": 1.0,
+      "url:apk": 1.0,
+      "url:bare": 1.0
+    },
+    "ifsc_attached_correctly": {
+      "correct": 88,
+      "of": 88
+    },
+    "note": "Messages are scenario lines and Hinglish call openers with fictitious entities planted from our own templates, so this is a regression-style check and an upper bound on real-chat performance. 40% carry a decoy (Aadhaar-like number, OTP, case number, email) that must not be extracted. Known gap by design: a 10-digit account number starting 6-9 is read as a phone number (all remaining account misses and phone false positives)."
+  },
+  "classifier": {
+    "labels_without_training_data": [
+      "other",
+      "family_emergency"
+    ],
+    "notes": [
+      "scam_calls_hinglish.csv reuses the same pool of texts under bank_kyc, amazon, aadhaar, lottery and relative, so those categories contradict themselves. Conflicting texts are dropped; only police_* and legit survive from that file.",
+      "Cross-source is a hard test: English bank SMS against Hinglish call openers, and 'legit' means a different thing in each source."
+    ],
+    "dedupe": {
+      "shade63": {
+        "raw": 14000,
+        "kept": 7069,
+        "label_conflicts": 0
+      },
+      "hinglish_calls": {
+        "raw": 10000,
+        "kept": 638,
+        "label_conflicts": 105
+      },
+      "job_task_seed": {
+        "raw": 40,
+        "kept": 40,
+        "label_conflicts": 0
+      },
+      "normalised_texts_shared_by_shade63_and_hinglish": 0
+    },
+    "cross_source": {
+      "shade63_to_hinglish_calls": {
+        "n_test": 638,
+        "macro_f1": 0.5698,
+        "scam_vs_legit_f1": 0.9124,
+        "per_class": {
+          "digital_arrest": {
+            "precision": 1.0,
+            "recall": 0.2879,
+            "f1": 0.4471,
+            "support": 528
+          },
+          "legit": {
+            "precision": 0.5665,
+            "recall": 0.8909,
+            "f1": 0.6926,
+            "support": 110
+          }
+        },
+        "confusion": {
+          "labels": [
+            "courier_gift",
+            "digital_arrest",
+            "kyc_bank",
+            "legit",
+            "lottery"
+          ],
+          "matrix": [
+            [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              152,
+              28,
+              75,
+              273
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              1,
+              0,
+              0,
+              98,
+              11
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          ]
+        },
+        "n_train": 7069,
+        "test_rows_with_label_unseen_in_training": 0
+      },
+      "hinglish_calls_to_shade63": {
+        "n_test": 5037,
+        "macro_f1": 0.4854,
+        "scam_vs_legit_f1": 0.701,
+        "per_class": {
+          "digital_arrest": {
+            "precision": 0.5398,
+            "recall": 0.9996,
+            "f1": 0.701,
+            "support": 2506
+          },
+          "legit": {
+            "precision": 0.9975,
+            "recall": 0.1561,
+            "f1": 0.2699,
+            "support": 2531
+          }
+        },
+        "confusion": {
+          "labels": [
+            "digital_arrest",
+            "legit"
+          ],
+          "matrix": [
+            [
+              2505,
+              1
+            ],
+            [
+              2136,
+              395
+            ]
+          ]
+        },
+        "n_train": 638,
+        "test_rows_with_label_unseen_in_training": 2032
+      },
+      "macro_f1_mean": 0.5276
+    },
+    "in_distribution": {
+      "n_test": 1550,
+      "macro_f1": 0.834,
+      "scam_vs_legit_f1": 0.999,
+      "per_class": {
+        "courier_gift": {
+          "precision": 1.0,
+          "recall": 0.5857,
+          "f1": 0.7387,
+          "support": 70
+        },
+        "digital_arrest": {
+          "precision": 0.97,
+          "recall": 0.8534,
+          "f1": 0.908,
+          "support": 607
+        },
+        "job_task": {
+          "precision": 0.7778,
+          "recall": 0.875,
+          "f1": 0.8235,
+          "support": 8
+        },
+        "kyc_bank": {
+          "precision": 0.9596,
+          "recall": 0.7422,
+          "f1": 0.837,
+          "support": 128
+        },
+        "legit": {
+          "precision": 0.9962,
+          "recall": 1.0,
+          "f1": 0.9981,
+          "support": 529
+        },
+        "lottery": {
+          "precision": 0.5655,
+          "recall": 0.9135,
+          "f1": 0.6985,
+          "support": 208
+        }
+      },
+      "confusion": {
+        "labels": [
+          "courier_gift",
+          "digital_arrest",
+          "job_task",
+          "kyc_bank",
+          "legit",
+          "lottery"
+        ],
+        "matrix": [
+          [
+            41,
+            0,
+            0,
+            0,
+            0,
+            29
+          ],
+          [
+            0,
+            518,
+            1,
+            3,
+            0,
+            85
+          ],
+          [
+            0,
+            0,
+            7,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            95,
+            1,
+            32
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            529,
+            0
+          ],
+          [
+            0,
+            16,
+            1,
+            1,
+            0,
+            190
+          ]
+        ]
+      },
+      "n_train": 6197,
+      "n_groups": 2763
+    },
+    "job_task_seed": {
+      "rows": 40,
+      "note": "hand-written from public advisories, weak class"
+    }
+  },
+  "stage_rules_on_scenario_lines": {
+    "lines": 67,
+    "correct": 67,
+    "mismatches": []
+  },
+  "latency": {
+    "n": 300,
+    "extract_ms": {
+      "p50": 0.109,
+      "p99": 0.191
+    },
+    "extract_plus_classify_ms": {
+      "p50": 1.268,
+      "p99": 5.66
+    }
+  }
+}
