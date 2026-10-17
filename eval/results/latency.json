@@ -1,0 +1,212 @@
+{
+  "platform": {
+    "machine_type": "9175",
+    "nnpa": true,
+    "vcpus": 3,
+    "control_program": "z/VM    7.3.0",
+    "python": "3.12.15",
+    "snapml": "1.17.2",
+    "arch": "s390x"
+  },
+  "note": "paced phases send 50 payments/s in total",
+  "inproc": {
+    "tree_format": "zdnn_tensors",
+    "n": 20000,
+    "p50_ms": 0.058,
+    "p95_ms": 0.071,
+    "p99_ms": 0.167,
+    "max_ms": 0.331
+  },
+  "inproc_replicas": [
+    {
+      "replicas": 1,
+      "scored_per_replica": 20000,
+      "payments_per_s_total": 15295,
+      "payments_per_s_each": 15295,
+      "wall_s": 5.5
+    },
+    {
+      "replicas": 3,
+      "scored_per_replica": 20000,
+      "payments_per_s_total": 35394,
+      "payments_per_s_each": 11798,
+      "wall_s": 7.9
+    }
+  ],
+  "http": {
+    "idle_flat_out_1": {
+      "clients": 1,
+      "target_tps": null,
+      "achieved_tps": 1281.3,
+      "errors": 0,
+      "round_trip": {
+        "n": 5000,
+        "p50_ms": 0.619,
+        "p95_ms": 1.031,
+        "p99_ms": 2.482,
+        "max_ms": 28.978
+      },
+      "guard_only": {
+        "n": 5000,
+        "p50_ms": 0.09,
+        "p95_ms": 0.132,
+        "p99_ms": 0.206,
+        "max_ms": 1.086
+      }
+    },
+    "idle_paced_1": {
+      "clients": 1,
+      "target_tps": 50,
+      "achieved_tps": 50.0,
+      "errors": 0,
+      "round_trip": {
+        "n": 1000,
+        "p50_ms": 0.863,
+        "p95_ms": 3.667,
+        "p99_ms": 4.318,
+        "max_ms": 27.935
+      },
+      "guard_only": {
+        "n": 1000,
+        "p50_ms": 0.134,
+        "p95_ms": 0.197,
+        "p99_ms": 0.624,
+        "max_ms": 0.698
+      }
+    },
+    "idle_flat_out_3": {
+      "clients": 3,
+      "target_tps": null,
+      "achieved_tps": 1416.2,
+      "errors": 0,
+      "round_trip": {
+        "n": 5001,
+        "p50_ms": 0.88,
+        "p95_ms": 4.648,
+        "p99_ms": 5.592,
+        "max_ms": 33.821
+      },
+      "guard_only": {
+        "n": 5001,
+        "p50_ms": 0.087,
+        "p95_ms": 0.135,
+        "p99_ms": 0.21,
+        "max_ms": 0.577
+      }
+    },
+    "idle_paced_3": {
+      "clients": 3,
+      "target_tps": 50,
+      "achieved_tps": 50.1,
+      "errors": 0,
+      "round_trip": {
+        "n": 1002,
+        "p50_ms": 1.839,
+        "p95_ms": 8.172,
+        "p99_ms": 9.16,
+        "max_ms": 12.859
+      },
+      "guard_only": {
+        "n": 1002,
+        "p50_ms": 0.105,
+        "p95_ms": 0.43,
+        "p99_ms": 0.578,
+        "max_ms": 0.865
+      }
+    },
+    "loaded_1": {
+      "during_350m_session": {
+        "clients": 1,
+        "target_tps": 50,
+        "achieved_tps": 48.9,
+        "errors": 0,
+        "round_trip": {
+          "n": 2488,
+          "p50_ms": 0.96,
+          "p95_ms": 11.067,
+          "p99_ms": 18.211,
+          "max_ms": 1192.853
+        },
+        "guard_only": {
+          "n": 2488,
+          "p50_ms": 0.142,
+          "p95_ms": 0.248,
+          "p99_ms": 0.643,
+          "max_ms": 2.56
+        }
+      },
+      "during_2b_summary": {
+        "clients": 1,
+        "target_tps": 50,
+        "achieved_tps": 50.0,
+        "errors": 0,
+        "round_trip": {
+          "n": 5304,
+          "p50_ms": 0.934,
+          "p95_ms": 8.503,
+          "p99_ms": 11.197,
+          "max_ms": 32.021
+        },
+        "guard_only": {
+          "n": 5304,
+          "p50_ms": 0.141,
+          "p95_ms": 0.203,
+          "p99_ms": 0.533,
+          "max_ms": 3.269
+        }
+      }
+    },
+    "loaded_3": {
+      "during_350m_session": {
+        "clients": 3,
+        "target_tps": 50,
+        "achieved_tps": 50.0,
+        "errors": 0,
+        "round_trip": {
+          "n": 2577,
+          "p50_ms": 2.039,
+          "p95_ms": 22.696,
+          "p99_ms": 31.938,
+          "max_ms": 42.207
+        },
+        "guard_only": {
+          "n": 2577,
+          "p50_ms": 0.114,
+          "p95_ms": 0.428,
+          "p99_ms": 0.934,
+          "max_ms": 10.736
+        }
+      },
+      "during_2b_summary": {
+        "clients": 3,
+        "target_tps": 50,
+        "achieved_tps": 50.0,
+        "errors": 0,
+        "round_trip": {
+          "n": 3906,
+          "p50_ms": 1.797,
+          "p95_ms": 14.008,
+          "p99_ms": 17.339,
+          "max_ms": 30.531
+        },
+        "guard_only": {
+          "n": 3906,
+          "p50_ms": 0.115,
+          "p95_ms": 0.36,
+          "p99_ms": 0.682,
+          "max_ms": 5.923
+        }
+      }
+    }
+  },
+  "service_stats": {
+    "scored": 26278,
+    "paused": 381,
+    "held": 5,
+    "held_by_intel": 0,
+    "inr_protected": 0,
+    "scammer_minutes": 13.06388888888889,
+    "p50_ms": 0.1334724984189961,
+    "p99_ms": 0.6816375619382599
+  }
+}
