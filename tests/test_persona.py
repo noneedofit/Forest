@@ -4,7 +4,7 @@ import pytest
 
 from forest.honeypot import guardrails as g
 from forest.honeypot import persona as p
-from forest.honeypot.agent import OFF_CHARACTER
+from forest.honeypot.agent import OFF_CHARACTER, echoes_caller
 
 HISTORY = [
     {"role": "scammer", "text": "Madam this is the cyber cell."},
@@ -55,3 +55,12 @@ def test_copy_detection():
     assert p.copied(shown[0].replace("beta", "ji"), shown) == "near"
     assert p.copied("Haan ji, my neighbour also got such a call. Who are you?", shown) is None
     assert p.copied("", shown) is None
+
+
+def test_saying_the_callers_line_back_is_caught():
+    caller = "Nani, main Rohan bol raha hoon. Phone kharab ho gaya, ye mera naya number hai."
+    assert echoes_caller("Nani, main Rohan bol raha hoon. Who is speaking beta?", caller)
+    # repeating only the id or a word or two is fine (the confirm move does that on purpose)
+    assert not echoes_caller("Rohan? Phone kharab? Who is speaking beta?", caller)
+    assert not echoes_caller("court.notice.dept@okaxis... it failed, any other id?",
+                             "UPI id hai court.notice.dept@okaxis, jaldi bhejo")  # fmt: skip

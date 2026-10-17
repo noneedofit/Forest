@@ -18,7 +18,9 @@ log = logging.getLogger("forest.granite")
 N_THREADS = 2  # leaves a core for payment scoring
 N_CTX = 2048
 MAX_TOKENS = 32
-TEMPERATURE = 0.7
+# Warmer sampling and a repeat penalty, so the 350M model copies its examples less often.
+TEMPERATURE = 0.85
+REPEAT_PENALTY = 1.15
 # Measured on the VM: a first turn takes ~13 s (whole prompt), later turns ~4 s because the
 # prompt prefix is reused. Past this the reply is dropped for a hand-written line.
 BUDGET_S = 20.0
@@ -56,21 +58,27 @@ class Granite:
         self.lock = threading.Lock()
 
     def generate(
-        self, prompt: str | list[dict], max_tokens: int | None = None, stop: list[str] | None = None
+        self,
+        prompt: str | list[dict],
+        max_tokens: int | None = None,
+        stop: list[str] | None = None,
+        temperature: float = TEMPERATURE,
+        repeat_penalty: float = REPEAT_PENALTY,
     ) -> Generation:
         """Stream tokens until a stop string, `max_tokens` or the time budget."""
-        stop = stop or ["\n"]
-        max_tokens = max_tokens or self.max_tokens
+        opts = {
+            "max_tokens": max_tokens or self.max_tokens,
+            "stop": stop or ["\n"],
+            "temperature": temperature,
+            "repeat_penalty": repeat_penalty,
+            "stream": True,
+        }
         with self.lock:
             start = time.perf_counter()
             if self.chat:
-                stream = self.llm.create_chat_completion(
-                    prompt, max_tokens=max_tokens, temperature=TEMPERATURE, stop=stop, stream=True
-                )
+                stream = self.llm.create_chat_completion(prompt, **opts)
             else:
-                stream = self.llm.create_completion(
-                    prompt, max_tokens=max_tokens, temperature=TEMPERATURE, stop=stop, stream=True
-                )
+                stream = self.llm.create_completion(prompt, **opts)
             parts, first, timed_out = [], None, False
             for chunk in stream:
                 choice = chunk["choices"][0]

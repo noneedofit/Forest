@@ -11,6 +11,7 @@ import uuid
 from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from difflib import SequenceMatcher
 
 from forest import security
 from forest.honeypot import guardrails, persona
@@ -53,6 +54,19 @@ OFF_CHARACTER = re.compile(
     r"\bi will give you\b",
     re.IGNORECASE,
 )
+
+
+# The varied prompt repeats the scammer's line just above Kamla's slot, and the small model
+# sometimes says it back as her own.
+ECHO_WORDS = 5
+
+
+def echoes_caller(reply: str, caller: str) -> bool:
+    """True if the reply repeats a run of ECHO_WORDS or more words from the caller's line."""
+    a = re.findall(r"[a-z']+", reply.lower())
+    b = re.findall(r"[a-z']+", caller.lower())
+    m = SequenceMatcher(None, a, b, autojunk=False).find_longest_match(0, len(a), 0, len(b))
+    return m.size >= ECHO_WORDS
 
 
 @dataclass
@@ -105,11 +119,15 @@ class Agent:
         granite: Granite | None = None,
         publish: Callable[[str, dict], None] | None = None,
         seed: int | None = None,
+        varied: bool = True,
     ) -> None:
         self.store = store
         self.granite = granite
         self.publish = publish or (lambda event, data: None)
         self.rng = random.Random(seed)
+        # varied=False keeps the fixed worked-example prompt (the eval's baseline)
+        self.varied = varied
+        self.seen: set[tuple[str, ...]] = set()
 
     def start(
         self,
@@ -206,11 +224,18 @@ class Agent:
             window = s.history[-WINDOW:]
             if self.granite.chat:
                 gen = self.granite.generate(persona.chat_messages(window, move, echo))
-                raw = gen.text
+                raw, shown = gen.text, []
             else:
-                gen = self.granite.generate(persona.completion_prompt(window, move, echo))
+                if self.varied:
+                    shown = persona.draw_examples(move, self.rng, self.seen)
+                    prompt = persona.completion_prompt(window, move, echo, shown)
+                else:
+                    shown = persona.fixed_examples()
+                    prompt = persona.completion_prompt(window, move, echo)
+                gen = self.granite.generate(prompt)
                 raw = (f" {echo}..." if echo else "") + gen.text
             reply = guardrails.clean(raw)
+            info["copied"] = persona.copied(reply, shown) if shown else None
             problems = guardrails.violations(reply, s.allowed)
             info.update(tokens=gen.tokens, tok_per_s=gen.tok_per_s, llm_seconds=gen.seconds)
             info["violations"] = list(problems)
@@ -218,6 +243,8 @@ class Agent:
                 problems.append("timeout")
             if OFF_CHARACTER.search(reply):
                 problems.append("off_character")
+            if echoes_caller(reply, s.history[-1]["text"]):
+                problems.append("echoes_caller")
             # every move but the goodbye has to keep the scammer explaining
             if move != "wind_down" and "?" not in reply and not problems:
                 tail = persona.TAILS[move]
