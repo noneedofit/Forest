@@ -5,6 +5,7 @@ import re
 from collections import deque
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Literal
 
 import numpy as np
 from fastapi import FastAPI, HTTPException, Request
@@ -17,6 +18,7 @@ from forest.api.events import EventBus
 from forest.guard.features import FEATURES
 from forest.guard.reasons import TEXT
 from forest.guard.score import Guard
+from forest.intel.labels import KINDS, SCAM_TYPES
 from forest.intel.store import Store
 
 WEB = Path(__file__).resolve().parent.parent / "web"
@@ -53,8 +55,8 @@ class Txn(BaseModel):
 
 class IntelIn(BaseModel):
     identifier: str
-    kind: str
-    scam_type: str | None = None
+    kind: Literal[*KINDS]
+    scam_type: Literal[*SCAM_TYPES] | None = None
     source_session: str | None = None
     confidence: float | None = None
 
