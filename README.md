@@ -52,7 +52,17 @@ The features only look backwards in time, so shuffling the rows into a random sp
 
 Replaying 20,000 test payments one at a time through the live scoring code gave the same decisions as the offline batch for all 20,000, at p50 0.048 ms and p99 0.066 ms per payment (feature update, Snap ML predict and policy, one thread, zDNN tree format).
 
-> **TODO (M5):** add `/score` latency through the running service (p50/p99 with Granite idle, during a honeypot session and during a 2B summary) and throughput at 1 vs 3 workers, from `eval/results/` once the M5 run lands.
+Latency through the running service on the z17 (3 vCPU), with payments sent at 50 per second and Granite loaded in the same container ([`latency.json`](eval/results/latency.json)). "Guard" is the scoring call inside the service. "Round trip" is the full HTTP request from a client on the same VM.
+
+| While the guard is scoring | Guard p50 / p99 | Round trip p50 / p99 |
+|---|---|---|
+| Granite idle | 0.13 / 0.62 ms | 0.86 / 4.3 ms |
+| Granite 350M answering a scammer | 0.14 / 0.64 ms | 0.96 / 18.2 ms |
+| Granite 2B writing a report | 0.14 / 0.53 ms | 0.93 / 11.2 ms |
+
+The guard itself barely slows down when Granite is generating. The tail of the round trip grows because Granite takes 2 of the 3 vCPUs, and one request out of 2,488 took 1.2 s during a honeypot session. With 3 clients instead of 1, the guard p99 stays under 1 ms in every case.
+
+Throughput: one scoring process handles 15,295 payments per second, and three processes on the 3 vCPUs handle 35,394 per second together. Through HTTP, a single service process tops out at 1,281 payments per second (1,416 with 3 clients), so the web layer sets the limit and the model has room to spare.
 
 ### Extractor and scam-type classifier
 
