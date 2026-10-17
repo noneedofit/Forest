@@ -131,3 +131,14 @@ def test_message_with_everything():
     )
     kinds = sorted(e.kind for e in extract(text))
     assert kinds == ["account", "amount", "phone", "upi"]
+
+
+def test_plus91_mobile_is_not_an_account():
+    text = "a/c holder helpline +919876543210"
+    assert pick(text, "account") == []
+    assert pick(text, "phone")[0].normalized == "+919876543210"
+
+
+def test_aadhaar_next_to_an_account_is_not_a_second_account():
+    text = "A/C no 3314-2900-1 Aadhaar 4541 3106 6181 is linked"
+    assert [e.normalized for e in pick(text, "account")] == ["331429001"]

@@ -18,6 +18,7 @@ SPOKEN_UPI = re.compile(
     r"\s+(@|at the rate(?: of)?|at)\s+([a-zA-Z][a-zA-Z0-9]{1,30})\b",
     re.IGNORECASE,
 )
+AADHAAR_BEFORE = re.compile(r"(?:aadhaar|aadhar|uid)\W{0,15}$", re.IGNORECASE)
 ACCOUNT_KEYWORD = re.compile(r"\b(?:a/c|a\.c\.?|acct|acc|account|ac|khata)\b", re.IGNORECASE)
 DIGIT_RUN = re.compile(r"(?<!\d)\d(?:[\s-]?\d){8,17}(?!\d)")
 IFSC = re.compile(r"\b[A-Za-z]{4}0[A-Za-z0-9]{6}\b")
@@ -89,6 +90,13 @@ def _accounts(text: str, ifsc_hits: list[tuple[int, int, str]]) -> list[Entity]:
         if not 9 <= len(digits) <= 18:
             continue
         if len(digits) == 10 and digits[0] in "6789":
+            continue
+        # a 12-digit run is either +91 and a mobile number, or an Aadhaar number
+        if len(digits) == 12 and digits[:2] == "91" and digits[2] in "6789":
+            continue
+        if text[max(0, m.start() - 4) : m.start()].endswith("+"):
+            continue
+        if AADHAAR_BEFORE.search(text[: m.start()]):
             continue
         near = text[max(0, m.start() - ACCOUNT_WINDOW) : m.end() + ACCOUNT_WINDOW]
         if not ACCOUNT_KEYWORD.search(near):
