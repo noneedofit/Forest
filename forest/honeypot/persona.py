@@ -121,8 +121,8 @@ def chat_messages(history: list[dict], move: str, echo: str | None) -> list[dict
     for h in history:
         role = "user" if h["role"] == "scammer" else "assistant"
         msgs.append({"role": role, "content": h["text"]})
-    note = f"(Reply as Kamla: {CUES[move]}.)"
+    note = f"(Reply as Kamla, in simple English: {CUES[move]}.)"
     if echo:
-        note = f"(Reply as Kamla: {CUES[move]}. Repeat the id {echo} back slowly.)"
+        note = f"(Reply as Kamla, in simple English: {CUES[move]}. Repeat the id {echo} back.)"
     msgs[-1] = {"role": "user", "content": f"{msgs[-1]['content']}\n\n{note}"}
     return msgs
