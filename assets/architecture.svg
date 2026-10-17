@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 640" width="1240" height="640" font-family="IBM Plex Sans, Helvetica Neue, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#393939"/>
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#da1e28"/>
+    </marker>
+    <style>
+      .t { fill: #161616; font-size: 17px; font-weight: 600; }
+      .s { fill: #393939; font-size: 13.5px; }
+      .l { fill: #525252; font-size: 12.5px; font-style: italic; }
+      .box { fill: #ffffff; stroke: #8d8d8d; stroke-width: 1.5; }
+      .ai { fill: #edf5ff; stroke: #0f62fe; stroke-width: 1.8; }
+      .out { fill: #fff1f1; stroke: #da1e28; stroke-width: 1.5; }
+      .ext { fill: #f4f4f4; stroke: #a8a8a8; stroke-width: 1.5; stroke-dasharray: 5 4; }
+      .line { stroke: #393939; stroke-width: 1.8; fill: none; marker-end: url(#arrow); }
+      .red { stroke: #da1e28; stroke-width: 1.8; fill: none; marker-end: url(#arrow-red); }
+    </style>
+  </defs>
+
+  <rect width="1240" height="640" fill="#ffffff"/>
+
+  <!-- IBM LinuxONE boundary -->
+  <rect x="200" y="30" width="830" height="580" rx="14" fill="#f6f9ff" stroke="#0f62fe" stroke-width="2.5"/>
+  <text x="224" y="64" fill="#0f62fe" font-size="21" font-weight="700">IBM LinuxONE (z17)</text>
+  <text x="430" y="64" class="s">Telum II processor with on-chip AI accelerator (NNPA), one Docker container</text>
+
+  <!-- outside, left -->
+  <rect x="20" y="120" width="150" height="90" rx="10" class="ext"/>
+  <text x="95" y="158" text-anchor="middle" class="t">Scammer</text>
+  <text x="95" y="180" text-anchor="middle" class="s">calls a number</text>
+  <text x="95" y="197" text-anchor="middle" class="s">reported as a scam</text>
+
+  <rect x="20" y="395" width="150" height="100" rx="10" class="ext"/>
+  <text x="95" y="430" text-anchor="middle" class="t">Bank payment</text>
+  <text x="95" y="452" text-anchor="middle" class="s">every outgoing</text>
+  <text x="95" y="469" text-anchor="middle" class="s">transfer, in real</text>
+  <text x="95" y="486" text-anchor="middle" class="s">time</text>
+
+  <!-- row 1: harvest intel -->
+  <rect x="230" y="100" width="250" height="130" rx="10" class="ai"/>
+  <text x="250" y="130" class="t">1. Scam honeypot</text>
+  <text x="250" y="154" class="s">"Kamla", a confused grandmother</text>
+  <text x="250" y="174" class="s">IBM Granite 4.0 350M + 3.3 2B</text>
+  <text x="250" y="194" class="s">llama.cpp on NNPA (zDNN)</text>
+  <text x="250" y="214" class="s">guardrails: never pays, never leaks</text>
+
+  <rect x="520" y="100" width="220" height="130" rx="10" class="box"/>
+  <text x="540" y="130" class="t">2. Extractor</text>
+  <text x="540" y="154" class="s">UPI ids, accounts, phones,</text>
+  <text x="540" y="174" class="s">links, amounts</text>
+  <text x="540" y="194" class="s">scam-type classifier</text>
+  <text x="540" y="214" class="s">playbook stage rules</text>
+
+  <rect x="780" y="100" width="225" height="130" rx="10" class="box"/>
+  <text x="800" y="130" class="t">3. Intel store</text>
+  <text x="800" y="154" class="s">SQLite on the same machine</text>
+  <text x="800" y="174" class="s">ids pseudonymised (HMAC)</text>
+  <text x="800" y="194" class="s">chat log AES-256-GCM</text>
+  <text x="800" y="214" class="s">(CPACF crypto)</text>
+
+  <!-- row 2: protect payments -->
+  <rect x="230" y="380" width="250" height="130" rx="10" class="ai"/>
+  <text x="250" y="410" class="t">4. Payment guard</text>
+  <text x="250" y="434" class="s">Snap ML boosted trees</text>
+  <text x="250" y="454" class="s">on the Telum II accelerator</text>
+  <text x="250" y="474" class="s">streaming mule features</text>
+  <text x="250" y="494" class="s">+ intel lookup per payment</text>
+
+  <rect x="520" y="395" width="200" height="100" rx="10" class="box"/>
+  <text x="620" y="430" text-anchor="middle" class="t">5. Decision</text>
+  <text x="620" y="454" text-anchor="middle" class="s">allow / pause / hold</text>
+  <text x="620" y="474" text-anchor="middle" class="s">with reason codes</text>
+
+  <rect x="780" y="330" width="225" height="90" rx="10" class="out"/>
+  <text x="800" y="360" class="t">Victim warning</text>
+  <text x="800" y="383" class="s">before the money leaves,</text>
+  <text x="800" y="402" class="s">in Hindi and English</text>
+
+  <rect x="780" y="465" width="225" height="90" rx="10" class="out"/>
+  <text x="800" y="495" class="t">Family alert</text>
+  <text x="800" y="518" class="s">a trusted contact is told</text>
+  <text x="800" y="537" class="s">the payment was stopped</text>
+
+  <!-- outside, right -->
+  <rect x="1060" y="335" width="160" height="80" rx="10" class="ext"/>
+  <text x="1140" y="370" text-anchor="middle" class="t">Victim</text>
+  <text x="1140" y="392" text-anchor="middle" class="s">phone / bank app</text>
+
+  <rect x="1060" y="470" width="160" height="80" rx="10" class="ext"/>
+  <text x="1140" y="505" text-anchor="middle" class="t">Family member</text>
+  <text x="1140" y="527" text-anchor="middle" class="s">son, daughter</text>
+
+  <!-- arrows -->
+  <path d="M170,155 L228,155" class="line" marker-start="url(#arrow)"/>
+  <text x="199" y="141" text-anchor="middle" class="l">chat</text>
+
+  <path d="M480,165 L518,165" class="line"/>
+  <text x="499" y="155" text-anchor="middle" class="l">text</text>
+
+  <path d="M740,165 L778,165" class="line"/>
+  <text x="759" y="155" text-anchor="middle" class="l">ids</text>
+
+  <path d="M892,230 L892,290 L355,290 L355,378" class="line"/>
+  <text x="623" y="280" text-anchor="middle" class="l">harvested collection ids become flagged receivers as soon as the scammer reveals them</text>
+
+  <path d="M170,445 L228,445" class="line"/>
+
+  <path d="M480,445 L518,445" class="line"/>
+  <text x="499" y="435" text-anchor="middle" class="l">score</text>
+
+  <path d="M720,430 L750,430 L750,375 L778,375" class="red"/>
+  <path d="M720,460 L750,460 L750,510 L778,510" class="red"/>
+
+  <path d="M1005,375 L1058,375" class="red"/>
+  <path d="M1005,510 L1058,510" class="red"/>
+
+  <!-- footer -->
+  <text x="615" y="588" text-anchor="middle" class="s">The model, the intel and the payments stay on one machine: no data leaves the platform to be scored.</text>
+</svg>
