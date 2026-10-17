@@ -4,6 +4,8 @@ Team Forest, IBM Z Datathon 2026 (SSF2026).
 
 Scammers reveal the UPI ids and bank accounts they collect money on to anyone who plays along, so Forest plays along. A Granite-powered honeypot persona keeps the scammer talking, pulls out every collection id they give, and hands those ids to a payment guard on the same IBM LinuxONE machine. When a real victim later tries to pay one of those ids, the payment is held before the money leaves, the victim sees a warning in Hindi and English, and a family member is told. The guard also scores every other payment with a Snap ML model for mule patterns, so receivers the honeypot never met are still caught.
 
+Headline results: the guard holds 50% of laundering payments while stopping only 0.1% of all payments, scores a payment in 0.17 ms at p99 on the z17 (0.62 ms inside the running service), and 15 of 15 simulated scam chats gave up their collection ids.
+
 ![Forest architecture](assets/architecture.svg)
 
 ## The problem
@@ -14,7 +16,7 @@ Most anti-scam tools sit on the phone and try to classify the call. By the time 
 
 ## How it works
 
-1. Honeypot: a number reported as a scam is routed to "Kamla", a confused grandmother persona. A strategy machine picks the next move (stall, act scared, say the payment failed and ask for another account) and IBM Granite 4.0 350M phrases it in Hinglish. Guardrails drop any line that would share a number, claim a payment was made, or admit to being a bot. After the call, Granite 3.3 2B writes an incident report.
+1. Honeypot: a number reported as a scam is routed to "Kamla", a confused grandmother persona. A strategy machine picks the next move (stall, act scared, say the payment failed and ask for another account) and IBM Granite 4.0 350M phrases it in English with a few Hindi words ("beta", "haan ji"). Guardrails drop any line that would share a number, claim a payment was made, or admit to being a bot. After the call, Granite 3.3 2B writes an incident report.
 2. Extractor: rules pull UPI ids, account numbers with IFSC, phone numbers, links and amounts out of each scammer message, including spoken forms like "narcotics dot clear07 at the rate okicici". A TF-IDF and logistic regression classifier labels the scam type, and stage rules track where the caller is in the playbook.
 3. Intel store: harvested ids go into SQLite on the same machine. Ids are stored as HMAC-SHA256 pseudonyms, and the chat log is encrypted with AES-256-GCM.
 4. Payment guard: every payment is scored by a Snap ML boosted-tree model on streaming features (how many new senders a receiver picked up in the last 24 hours, whether the payee is new for this sender, how unusual the amount is for the sender, how old the receiving account is, and more), plus a lookup against the intel store. The decision is allow, pause (a "one minute, are you sure?" prompt) or hold, with reason codes. A hold sends the victim warning and the family alert.
@@ -23,7 +25,7 @@ The whole loop runs in one Docker container on an IBM LinuxONE z17 virtual machi
 
 ## Why IBM Z
 
-- Inference happens next to the data. Banks already run their payment systems on IBM Z, so the guard can score inside the payment flow instead of shipping each transaction to a separate fraud service and waiting for the answer.
+- Inference happens next to the data. Many large banks run their core payment systems on IBM Z, so the guard can score inside the payment flow instead of shipping each transaction to a separate fraud service and waiting for the answer.
 - Both models use the Telum II on-chip AI accelerator (NNPA) through IBM's zDNN library. Snap ML picks zDNN tree tensors on this machine by itself, and Granite runs through llama.cpp built with the zDNN backend.
 - Data stays on the platform. Payments, harvested intel and the honeypot transcripts never leave the machine, the ids are pseudonymised, and the chat log is encrypted at rest using the CPU's crypto instructions (CPACF) through OpenSSL.
 - It scales up on one box. A full z17 has far more cores than our 3-vCPU VM, and IBM reports up to 282,000 CICS card transactions per second with in-transaction fraud inference on z17 using Machine Learning for z/OS (IBM's figure, not ours).
