@@ -70,9 +70,12 @@ ECHO_WORDS = 5
 
 
 def echoes_caller(reply: str, caller: str) -> bool:
-    """True if the reply repeats a run of ECHO_WORDS or more words from the caller's line."""
+    """True if the reply repeats a run of ECHO_WORDS or more words from the caller's line.
+    Payment ids don't count: saying those back is what the confirm move is for."""
+    for e in extract(caller):
+        caller = caller.replace(e.value, " | ")
     a = re.findall(r"[a-z']+", reply.lower())
-    b = re.findall(r"[a-z']+", caller.lower())
+    b = re.findall(r"[a-z']+|\|", caller.lower())
     m = SequenceMatcher(None, a, b, autojunk=False).find_longest_match(0, len(a), 0, len(b))
     return m.size >= ECHO_WORDS
 
@@ -268,6 +271,8 @@ class Agent:
                 else:
                     problems.append("no_question")
             info["problems"] = problems
+            if problems:
+                info["dropped"] = reply  # kept for the eval and transcripts
             if not problems:
                 info["source"] = "granite"
         if info["source"] == "template":

@@ -64,3 +64,5 @@ def test_saying_the_callers_line_back_is_caught():
     assert not echoes_caller("Rohan? Phone kharab? Who is speaking beta?", caller)
     assert not echoes_caller("court.notice.dept@okaxis... it failed, any other id?",
                              "UPI id hai court.notice.dept@okaxis, jaldi bhejo")  # fmt: skip
+    spoken = "ek aur id, narcotics dot clear07 at the rate okicici. Jaldi kariye."
+    assert not echoes_caller("Narcotics dot clear07 at the rate okicici? Any other id?", spoken)
