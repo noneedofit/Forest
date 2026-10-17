@@ -1,0 +1,120 @@
+{
+  "model": "granite-4.0-h-350m-base-be.f16.gguf",
+  "messages": [
+    {
+      "ts": "2026-10-17T16:40:58Z",
+      "role": "scammer",
+      "body": "Good afternoon madam. This is Inspector Sharma from the Mumbai Cyber Crime department. Please confirm you are Mrs Kamla Devi."
+    },
+    {
+      "ts": "2026-10-17T16:41:10Z",
+      "role": "agent",
+      "body": "Beta, I don't understand these things. Which office are you calling from?"
+    },
+    {
+      "ts": "2026-10-17T16:41:10Z",
+      "role": "scammer",
+      "body": "Your Aadhaar is linked to a money laundering case. A warrant is ready and you will be arrested within two hours."
+    },
+    {
+      "ts": "2026-10-17T16:41:25Z",
+      "role": "agent",
+      "body": "Please don't do anything to me beta, I am alone at home. Tell me slowly, how do I fix it?"
+    },
+    {
+      "ts": "2026-10-17T16:41:25Z",
+      "role": "scammer",
+      "body": "Madam, case band karwane ke liye verification amount Rs 49,999 abhi inspector.verify22@okaxis par transfer kijiye. Yeh refundable hai, jaanch ke baad wapas mil jayega."
+    },
+    {
+      "ts": "2026-10-17T16:41:29Z",
+      "role": "agent",
+      "body": "inspector.verify22@okaxis... haan ji, I typed it but it is showing failed. Is there any other account?"
+    },
+    {
+      "ts": "2026-10-17T16:41:29Z",
+      "role": "scammer",
+      "body": "That id is under maintenance. Use this one instead, narcotics.clear07@okicici, and send the amount right now."
+    },
+    {
+      "ts": "2026-10-17T16:41:32Z",
+      "role": "agent",
+      "body": "Beta, my grandson Rohan is coming now, he will help me. I will call you back."
+    }
+  ],
+  "replies": [
+    {
+      "move": "confused_engage",
+      "source": "template",
+      "problems": [
+        "off_character"
+      ],
+      "tokens": 19,
+      "tok_per_s": 8.407931102172835,
+      "llm_seconds": 12.412480451006559,
+      "violations": [],
+      "seconds": 12.412944278003124
+    },
+    {
+      "move": "scared_comply",
+      "source": "granite",
+      "problems": [],
+      "tokens": 25,
+      "tok_per_s": 7.7747392934063875,
+      "llm_seconds": 14.608202764997259,
+      "violations": [],
+      "seconds": 14.608423297999252
+    },
+    {
+      "move": "confirm_and_ask_alt",
+      "source": "granite",
+      "problems": [],
+      "tokens": 19,
+      "tok_per_s": 7.99079153613739,
+      "llm_seconds": 3.9479269559960812,
+      "violations": [],
+      "seconds": 3.948151960998075
+    },
+    {
+      "move": "wind_down",
+      "source": "granite",
+      "problems": [],
+      "tokens": 21,
+      "tok_per_s": 8.083422233424631,
+      "llm_seconds": 3.386469130004116,
+      "violations": [],
+      "seconds": 3.3866570939935627
+    }
+  ],
+  "report": {
+    "session": "58b5bdf40fca",
+    "scam_type": "digital_arrest",
+    "predicted": {
+      "label": "digital_arrest",
+      "prob": 0.4222505079019489,
+      "model_label": "digital_arrest",
+      "source": "rules"
+    },
+    "stages": [
+      "authority_claim",
+      "threat",
+      "payment_ask"
+    ],
+    "ids": [
+      {
+        "kind": "upi",
+        "display": "na****@okicici"
+      },
+      {
+        "kind": "upi",
+        "display": "in****@okaxis"
+      }
+    ],
+    "holds": 0,
+    "hold_reason": "INTEL_MATCH",
+    "turns": 4,
+    "scammer_minutes": 5.9,
+    "summary": "Reported digital arrest scam. The caller went through authority claim, threat, payment ask and asked for money to 2 collection id(s): na****@okicici (upi), in****@okaxis (upi). 0 payment(s) to these ids were held by the bank's guard (INTEL_MATCH).",
+    "summary_by": "template"
+  }
+}
