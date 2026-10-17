@@ -67,7 +67,10 @@ def load_aml(path: Path, nrows: int | None = None) -> pd.DataFrame:
     missing = set(df["cur_paid"].cat.categories) - set(FX_TO_USD)
     if missing:
         raise ValueError(f"no FX rate for {sorted(missing)}")
-    df["ts"] = pd.to_datetime(df["ts"], format="%Y/%m/%d %H:%M").astype("int64") // 10**9
+    # pandas 3 infers the datetime unit, so pin it to seconds before going to int.
+    df["ts"] = (
+        pd.to_datetime(df["ts"], format="%Y/%m/%d %H:%M").astype("datetime64[s]").astype("int64")
+    )
     df["amount_usd"] = (df["amt_paid"] * df["cur_paid"].map(FX_TO_USD).astype(np.float64)).astype(
         np.float32
     )
