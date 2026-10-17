@@ -1,0 +1,207 @@
+{
+  "data": "IBM AML HI-Small (5,078,345 transfers)",
+  "split": "time: train Sep 1-6, val Sep 7-8, test Sep 9-10 (2022)",
+  "excluded_tail": {
+    "note": "Sep 11-18: normal traffic has stopped, rows are mostly laundering",
+    "rows": 1108,
+    "positives": 655
+  },
+  "budgets": {
+    "pause": 0.01,
+    "hold": 0.001
+  },
+  "thresholds_from": "validation period only",
+  "model": {
+    "num_round": 300,
+    "max_depth": 8,
+    "learning_rate": 0.1,
+    "lambda_l2": 1.0,
+    "neg_per_pos": 200
+  },
+  "tree_format": "zdnn_tensors",
+  "grid": [
+    {
+      "num_round": 300,
+      "max_depth": 4,
+      "val_pr_auc": 0.550326429530202,
+      "secs": 18.439231395721436
+    },
+    {
+      "num_round": 300,
+      "max_depth": 6,
+      "val_pr_auc": 0.5662947190948464,
+      "secs": 21.935571908950806
+    },
+    {
+      "num_round": 300,
+      "max_depth": 8,
+      "val_pr_auc": 0.5728726380971016,
+      "secs": 31.60889172554016
+    },
+    {
+      "num_round": 500,
+      "max_depth": 4,
+      "val_pr_auc": 0.5429094274634444,
+      "secs": 57.85415863990784
+    },
+    {
+      "num_round": 500,
+      "max_depth": 6,
+      "val_pr_auc": 0.5637733543412673,
+      "secs": 61.35983180999756
+    },
+    {
+      "num_round": 500,
+      "max_depth": 8,
+      "val_pr_auc": 0.5636127572787215,
+      "secs": 91.96433734893799
+    }
+  ],
+  "positives_per_day": {
+    "2022-09-01": 322,
+    "2022-09-02": 408,
+    "2022-09-03": 391,
+    "2022-09-04": 407,
+    "2022-09-05": 471,
+    "2022-09-06": 531,
+    "2022-09-07": 497,
+    "2022-09-08": 539,
+    "2022-09-09": 514,
+    "2022-09-10": 442,
+    "2022-09-11": 232,
+    "2022-09-12": 170,
+    "2022-09-13": 106,
+    "2022-09-14": 70,
+    "2022-09-15": 28,
+    "2022-09-16": 26,
+    "2022-09-17": 15,
+    "2022-09-18": 8
+  },
+  "snapml_boosting": {
+    "val": {
+      "rows": 965524,
+      "positives": 1036,
+      "pr_auc": 0.5728716073456147,
+      "roc_auc": 0.9863803701087058,
+      "pause_1pct": {
+        "threshold": 0.03082197556167651,
+        "flagged_rate": 0.010000787137347181,
+        "recall": 0.7953667953667953,
+        "precision": 0.08533554266777134,
+        "tp": 824,
+        "fp": 8832,
+        "fn": 212,
+        "tn": 955656
+      },
+      "hold_0_1pct": {
+        "threshold": 0.6363552287455944,
+        "flagged_rate": 0.0010004929965490243,
+        "recall": 0.5154440154440154,
+        "precision": 0.5527950310559007,
+        "tp": 534,
+        "fp": 432,
+        "fn": 502,
+        "tn": 964056
+      }
+    },
+    "test": {
+      "rows": 862792,
+      "positives": 956,
+      "pr_auc": 0.5195233418312496,
+      "roc_auc": 0.9790058805031221,
+      "pause_1pct": {
+        "threshold": 0.03082197556167651,
+        "flagged_rate": 0.026041038859887435,
+        "recall": 0.7751046025104602,
+        "precision": 0.0329802385615097,
+        "tp": 741,
+        "fp": 21727,
+        "fn": 215,
+        "tn": 840109
+      },
+      "hold_0_1pct": {
+        "threshold": 0.6363552287455944,
+        "flagged_rate": 0.00101530844050478,
+        "recall": 0.4989539748953975,
+        "precision": 0.5445205479452054,
+        "tp": 477,
+        "fp": 399,
+        "fn": 479,
+        "tn": 861437
+      }
+    }
+  },
+  "logreg_baseline": {
+    "test": {
+      "rows": 862792,
+      "positives": 956,
+      "pr_auc": 0.20617438068987382,
+      "roc_auc": 0.9629773963295757,
+      "pause_1pct": {
+        "threshold": 0.31630849838256836,
+        "flagged_rate": 0.04342182125008113,
+        "recall": 0.7656903765690377,
+        "precision": 0.019538757206918642,
+        "tp": 732,
+        "fp": 36732,
+        "fn": 224,
+        "tn": 825104
+      },
+      "hold_0_1pct": {
+        "threshold": 0.7695051431655884,
+        "flagged_rate": 0.006905488228912646,
+        "recall": 0.606694560669456,
+        "precision": 0.09734810339039947,
+        "tp": 580,
+        "fp": 5378,
+        "fn": 376,
+        "tn": 856458
+      }
+    }
+  },
+  "random_split_leaky": {
+    "note": "same recipe on a shuffled 60/20/20 split of Sep 1-10; mixes future into train",
+    "test": {
+      "rows": 1015448,
+      "positives": 919,
+      "pr_auc": 0.5033572684220127,
+      "roc_auc": 0.9819130475733733,
+      "pause_1pct": {
+        "threshold": 0.02775113620912182,
+        "flagged_rate": 0.010100960364292411,
+        "recall": 0.7116430903155604,
+        "precision": 0.06376133372331091,
+        "tp": 654,
+        "fp": 9603,
+        "fn": 265,
+        "tn": 1004926
+      },
+      "hold_0_1pct": {
+        "threshold": 0.37069087199226863,
+        "flagged_rate": 0.0010133458335631169,
+        "recall": 0.48748639825897716,
+        "precision": 0.43537414965986393,
+        "tp": 448,
+        "fp": 581,
+        "fn": 471,
+        "tn": 1013948
+      }
+    }
+  },
+  "live_replay": {
+    "rows": 20000,
+    "decision_agreement": 1.0,
+    "decisions": {
+      "allow": 19730,
+      "pause": 266,
+      "hold": 4
+    },
+    "tree_format": "zdnn_tensors",
+    "latency_ms": {
+      "p50": 0.045153999963076785,
+      "p99": 0.07216552770842027,
+      "mean": 0.050633027800176936
+    },
+    "note": "one call = feature update + Snap ML predict + policy, single thread"
+  }
+}
