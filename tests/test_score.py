@@ -1,11 +1,12 @@
 import json
+import pickle
 
 import numpy as np
 import pytest
 
-from forest.guard.features import FEATURES
+from forest.guard.features import FEATURES, FeatureState
 from forest.guard.load import FX_TO_USD
-from forest.guard.reasons import PRIORITY, TEXT, explain
+from forest.guard.reasons import FALLBACK, PRIORITY, TEXT, explain
 from forest.guard.score import Guard, decide, reason_codes
 
 
@@ -34,7 +35,7 @@ def test_reasons_capped_at_three_in_priority_order():
 
 
 def test_every_code_has_both_languages():
-    assert set(TEXT) == set(PRIORITY)
+    assert set(TEXT) == {*PRIORITY, FALLBACK}
     assert explain(["NEW_PAYEE"], "hi") == [
         "Aapne is khaate mein pehle kabhi paise nahi bheje hain."
     ]
@@ -60,19 +61,25 @@ def artifacts(tmp_path):
     (tmp_path / "feature_list.json").write_text(json.dumps(FEATURES))
     (tmp_path / "fx_rates.json").write_text(json.dumps(FX_TO_USD))
     (tmp_path / "thresholds.json").write_text(json.dumps({"t_pause": 0.5, "t_hold": 0.99}))
+    (tmp_path / "feature_state.pkl").write_bytes(pickle.dumps(FeatureState()))
     return tmp_path
+
+
+TXN = {
+    "ts": "2022/09/12 10:00",
+    "src": "A",
+    "dst": "B",
+    "from_bank": "001",
+    "to_bank": "002",
+    "amount": 20,
+    "currency": "US Dollar",
+    "fmt": "ACH",
+}
 
 
 def test_guard_scores_and_holds_intel_hits(artifacts):
     guard = Guard(artifacts, intel=FlagOne("MULE1"))
-    txn = {
-        "ts": "2022/09/12 10:00",
-        "src": "A",
-        "dst": "B",
-        "amount": 20,
-        "currency": "US Dollar",
-        "fmt": "ACH",
-    }
+    txn = TXN
     d = guard.score(txn)
     assert d.decision in {"allow", "pause", "hold"}
     assert 0.0 <= d.score <= 1.0
@@ -86,7 +93,28 @@ def test_guard_scores_and_holds_intel_hits(artifacts):
     assert d.decision == "hold"
 
 
-def test_guard_rejects_unknown_currency(artifacts):
+def test_guard_rejects_bad_payments(artifacts):
     guard = Guard(artifacts)
-    with pytest.raises(ValueError):
-        guard.score({"ts": 0, "src": "A", "dst": "B", "amount": 1, "currency": "Doubloon"})
+    with pytest.raises(ValueError, match="currency"):
+        guard.score({**TXN, "currency": "INR"})
+    with pytest.raises(ValueError, match="missing"):
+        guard.score({k: v for k, v in TXN.items() if k != "fmt"})
+    guard.score(TXN)
+    with pytest.raises(ValueError, match="older"):
+        guard.score({**TXN, "ts": "2022/09/12 09:59"})
+    assert guard.score(TXN).decision in {"allow", "pause", "hold"}  # same minute is fine
+
+
+def test_guard_needs_warm_state(artifacts):
+    (artifacts / "feature_state.pkl").unlink()
+    with pytest.raises(FileNotFoundError):
+        Guard(artifacts)
+
+
+def test_model_only_stop_gets_fallback_reason(artifacts, monkeypatch):
+    monkeypatch.setattr("forest.guard.score.reason_codes", lambda f, intel_hit=False: [])
+    guard = Guard(artifacts)
+    guard.t_pause = guard.t_hold = 0.0
+    d = guard.score(TXN)
+    assert d.decision == "hold"
+    assert d.reasons == [FALLBACK]
