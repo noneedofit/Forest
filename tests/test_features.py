@@ -3,6 +3,7 @@ import math
 import pytest
 
 from forest.guard.features import DAY, FEATURES, WEEK, FeatureState, to_epoch
+from forest.guard.load import load_aml
 
 T0 = to_epoch("2022/09/01 00:00")
 
@@ -116,3 +117,19 @@ def test_to_epoch_forms_agree():
     assert to_epoch("2022-09-01T00:00:00") == T0
     assert to_epoch(datetime(2022, 9, 1)) == T0
     assert to_epoch(float(T0)) == T0
+
+
+def test_load_aml_epoch_seconds_and_usd(tmp_path):
+    csv = tmp_path / "aml.csv"
+    csv.write_text(
+        "Timestamp,From Bank,Account,To Bank,Account,Amount Received,Receiving Currency,"
+        "Amount Paid,Payment Currency,Payment Format,Is Laundering\n"
+        "2022/09/01 00:20,010,AAA,010,BBB,10.0,Euro,10.0,Euro,ACH,1\n"
+        "2022/09/01 00:05,00795,CCC,001,AAA,5.0,US Dollar,5.0,US Dollar,Cheque,0\n"
+    )
+    df = load_aml(csv)
+    assert df["ts"].tolist() == [T0 + 5 * 60, T0 + 20 * 60]
+    assert df["src"].tolist() == ["CCC", "AAA"]
+    assert df["from_bank"].astype(str).tolist() == ["00795", "010"]
+    assert df["amount_usd"].tolist() == pytest.approx([5.0, 11.718])
+    assert df["y"].tolist() == [0, 1]
