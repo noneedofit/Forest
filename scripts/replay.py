@@ -90,6 +90,12 @@ def main() -> None:
     ap.add_argument("--from", dest="start", help='first payment time, e.g. "2022/09/09 12:00"')
     ap.add_argument("--inject-victim", type=float, default=0, metavar="SECONDS")
     ap.add_argument("--victim-handle", help="always pay this handle (default: cycle through all)")
+    ap.add_argument(
+        "--max-inr",
+        type=float,
+        default=1_000_000,
+        help="skip payments above this many rupees (dataset rows go to crores and swamp the table); 0 keeps all",
+    )
     ap.add_argument("--victim-amount", type=float, default=85_000, help="in rupees")
     args = ap.parse_args()
 
@@ -101,6 +107,11 @@ def main() -> None:
         pairs = [(args.victim_handle, aliases[args.victim_handle])]
 
     rows = load_rows(args.start, args.limit)
+    if args.max_inr:
+        fx = json.loads((DATA_DIR / "artifacts/fx_rates.json").read_text())
+        keep = [r for r in rows if r["amount"] * fx[r["currency"]] / fx["Rupee"] <= args.max_inr]
+        print(f"skipping {len(rows) - len(keep):,} payments above Rs {args.max_inr:,.0f}")
+        rows = keep
     print(f"{len(rows):,} payments, first {rows[0]['ts']}, last {rows[-1]['ts']}")
     counts: Counter[str] = Counter()
     errors = 0
