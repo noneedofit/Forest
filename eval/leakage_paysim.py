@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 from sklearn.metrics import average_precision_score, roc_auc_score
 
 from forest.config import DATA_DIR
@@ -26,7 +27,7 @@ RECEIVER = [
 ]
 
 
-def receiver_features(df) -> np.ndarray:
+def receiver_features(df: pd.DataFrame) -> np.ndarray:
     """Streaming receiver features over PaySim (one step = one hour), via the guard's own code."""
     state = FeatureState()
     cols = [FEATURES.index(c) for c in RECEIVER]
