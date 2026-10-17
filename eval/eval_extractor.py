@@ -323,7 +323,8 @@ def latency(messages: list[tuple[str, list[dict]]]) -> dict:
 
 def main() -> None:
     sources = classify.load_sources()
-    shade, hing, seed = (sources[k][0] for k in ("shade63", "hinglish_calls", "job_task_seed"))
+    shade, hing = sources["shade63"][0], sources["hinglish_calls"][0]
+    seed = sources["job_task_seed"][0] + sources["family_emergency_seed"][0]
     norm_overlap = {classify.normalise(t) for t, _ in shade} & {
         classify.normalise(t) for t, _ in hing
     }
@@ -358,7 +359,7 @@ def main() -> None:
             "account misses and phone false positives)."
         },
         "classifier": {
-            "labels_without_training_data": ["other", "family_emergency"],
+            "labels_without_training_data": ["other"],
             "notes": [
                 (
                     "scam_calls_hinglish.csv reuses the same pool of texts under bank_kyc, "
@@ -379,9 +380,10 @@ def main() -> None:
                 "macro_f1_mean": headline,
             },
             "in_distribution": in_distribution(shade + hing + seed),
-            "job_task_seed": {
-                "rows": len(seed),
-                "note": "hand-written from public advisories, weak class",
+            "hand_written_seeds": {
+                "job_task": len(sources["job_task_seed"][0]),
+                "family_emergency": len(sources["family_emergency_seed"][0]),
+                "note": "written from public advisories, weak classes",
             },
         },
         "stage_rules_on_scenario_lines": stage_accuracy(),

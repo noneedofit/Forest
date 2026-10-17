@@ -1,7 +1,7 @@
 """Scam-type classifier: char + word TF-IDF into logistic regression.
 
-Trained on two public CSV datasets plus a small hand-written seed for `job_task`, which has no
-public source. Train on the VM so the pickle is big-endian: `python -m forest.intel.classify`.
+Trained on two public CSV datasets plus small hand-written seeds for `job_task` and `family_emergency`,
+which have no usable public source. Train on the VM so the pickle is big-endian: `python -m forest.intel.classify`.
 """
 
 import csv
@@ -19,7 +19,7 @@ from sklearn.pipeline import FeatureUnion, Pipeline
 from forest.config import DATA_DIR
 
 RAW = DATA_DIR / "raw"
-SEED = Path(__file__).resolve().parent / "seed" / "job_task.csv"
+SEED_DIR = Path(__file__).resolve().parent / "seed"
 MODEL_PATH = DATA_DIR / "artifacts" / "scam_clf.joblib"
 
 SHADE_LABELS = {
@@ -81,7 +81,8 @@ def load_sources() -> dict[str, tuple[Rows, dict]]:
     spec = {
         "shade63": (RAW / "scam_multiclass.csv", "label", SHADE_LABELS),
         "hinglish_calls": (RAW / "scam_calls_hinglish.csv", "scam_category", HINGLISH_LABELS),
-        "job_task_seed": (SEED, "label", None),
+        "job_task_seed": (SEED_DIR / "job_task.csv", "label", None),
+        "family_emergency_seed": (SEED_DIR / "family_emergency.csv", "label", None),
     }
     out = {}
     for name, (path, col, mapping) in spec.items():

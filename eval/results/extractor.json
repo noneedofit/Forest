@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-17T14:59:21Z",
+  "generated": "2026-10-17T15:18:30Z",
   "headline": {
     "classifier_cross_source_macro_f1_mean": 0.5276,
     "extractor_per_kind_f1": {
@@ -77,8 +77,7 @@
   },
   "classifier": {
     "labels_without_training_data": [
-      "other",
-      "family_emergency"
+      "other"
     ],
     "notes": [
       "scam_calls_hinglish.csv reuses the same pool of texts under bank_kyc, amazon, aadhaar, lottery and relative, so those categories contradict themselves. Conflicting texts are dropped; only police_* and legit survive from that file.",
@@ -96,6 +95,11 @@
         "label_conflicts": 105
       },
       "job_task_seed": {
+        "raw": 40,
+        "kept": 40,
+        "label_conflicts": 0
+      },
+      "family_emergency_seed": {
         "raw": 40,
         "kept": 40,
         "label_conflicts": 0
@@ -210,44 +214,50 @@
       "macro_f1_mean": 0.5276
     },
     "in_distribution": {
-      "n_test": 1550,
-      "macro_f1": 0.834,
-      "scam_vs_legit_f1": 0.999,
+      "n_test": 1558,
+      "macro_f1": 0.7926,
+      "scam_vs_legit_f1": 0.9995,
       "per_class": {
         "courier_gift": {
           "precision": 1.0,
-          "recall": 0.5857,
-          "f1": 0.7387,
+          "recall": 0.5143,
+          "f1": 0.6792,
           "support": 70
         },
         "digital_arrest": {
-          "precision": 0.97,
-          "recall": 0.8534,
-          "f1": 0.908,
+          "precision": 0.9808,
+          "recall": 0.8402,
+          "f1": 0.9051,
           "support": 607
         },
+        "family_emergency": {
+          "precision": 0.3478,
+          "recall": 1.0,
+          "f1": 0.5161,
+          "support": 8
+        },
         "job_task": {
-          "precision": 0.7778,
-          "recall": 0.875,
-          "f1": 0.8235,
+          "precision": 0.8,
+          "recall": 1.0,
+          "f1": 0.8889,
           "support": 8
         },
         "kyc_bank": {
-          "precision": 0.9596,
-          "recall": 0.7422,
-          "f1": 0.837,
-          "support": 128
+          "precision": 0.9604,
+          "recall": 0.7519,
+          "f1": 0.8435,
+          "support": 129
         },
         "legit": {
-          "precision": 0.9962,
+          "precision": 0.9981,
           "recall": 1.0,
-          "f1": 0.9981,
-          "support": 529
+          "f1": 0.9991,
+          "support": 528
         },
         "lottery": {
-          "precision": 0.5655,
-          "recall": 0.9135,
-          "f1": 0.6985,
+          "precision": 0.5782,
+          "recall": 0.9423,
+          "f1": 0.7166,
           "support": 208
         }
       },
@@ -255,6 +265,7 @@
         "labels": [
           "courier_gift",
           "digital_arrest",
+          "family_emergency",
           "job_task",
           "kyc_bank",
           "legit",
@@ -262,61 +273,77 @@
         ],
         "matrix": [
           [
-            41,
+            36,
+            0,
+            15,
             0,
             0,
             0,
-            0,
-            29
+            19
           ],
           [
             0,
-            518,
-            1,
-            3,
+            510,
             0,
-            85
+            0,
+            4,
+            0,
+            93
           ],
           [
             0,
             0,
-            7,
+            8,
             0,
-            1,
+            0,
+            0,
             0
           ],
           [
             0,
             0,
             0,
-            95,
-            1,
-            32
-          ],
-          [
+            8,
             0,
             0,
-            0,
-            0,
-            529,
             0
           ],
           [
             0,
-            16,
-            1,
             1,
             0,
-            190
+            0,
+            97,
+            0,
+            31
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            528,
+            0
+          ],
+          [
+            0,
+            9,
+            0,
+            2,
+            0,
+            1,
+            196
           ]
         ]
       },
-      "n_train": 6197,
-      "n_groups": 2763
+      "n_train": 6229,
+      "n_groups": 2803
     },
-    "job_task_seed": {
-      "rows": 40,
-      "note": "hand-written from public advisories, weak class"
+    "hand_written_seeds": {
+      "job_task": 40,
+      "family_emergency": 40,
+      "note": "written from public advisories, weak classes"
     }
   },
   "stage_rules_on_scenario_lines": {
@@ -327,12 +354,12 @@
   "latency": {
     "n": 300,
     "extract_ms": {
-      "p50": 0.109,
-      "p99": 0.191
+      "p50": 0.105,
+      "p99": 0.167
     },
     "extract_plus_classify_ms": {
-      "p50": 1.268,
-      "p99": 5.66
+      "p50": 1.265,
+      "p99": 1.738
     }
   }
 }
