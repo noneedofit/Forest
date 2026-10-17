@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forest · Call Them Back</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Forest <span>· Call Them Back</span></h1>
+  <div class="badges">
+    <span class="badge" id="b-platform">connecting…</span>
+    <span class="badge" id="b-scored">0 scored</span>
+    <span class="badge" id="b-p99">p99 – ms</span>
+  </div>
+</header>
+
+<main>
+  <section class="panel live">
+    <h2>Live payments <small>amounts converted at dataset rates</small></h2>
+    <table>
+      <thead><tr><th>Time</th><th>From</th><th>To</th><th class="num">₹ amount</th><th>Risk</th><th>Decision</th><th>Why</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </section>
+
+  <div class="side">
+    <section class="panel">
+      <h2>Honeypot chat</h2>
+      <div id="chat" class="chat"><p class="empty">No conversation yet.</p></div>
+    </section>
+
+    <section class="panel">
+      <h2>Scam intel</h2>
+      <ul id="intel" class="intel"><li class="empty">Nothing harvested yet.</li></ul>
+    </section>
+
+    <section class="panel">
+      <h2>Victim's phone</h2>
+      <div class="phone" id="phone">
+        <p class="empty">No stopped payment yet.</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div><b id="f-held">0</b> held</div>
+  <div><b id="f-paused">0</b> paused</div>
+  <div><b id="f-inr">₹0</b> protected</div>
+  <div><b id="f-min">0</b> scammer minutes wasted</div>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
