@@ -5,7 +5,9 @@ python -m eval.eval_honeypot [--seeds 3]  ->  eval/results/honeypot.json (+ one 
 
 Reports ids harvested, turns, simulated scammer minutes, Granite's fallback rate and why,
 guardrail violations caught and leaked (in the scenarios and on bait messages), reply latency,
-and how well the session scam type matches the scenario (raw classifier vs classifier + cue rules).
+how well the session scam type matches the scenario (raw classifier vs classifier + cue rules),
+how often Granite copies an example line (fixed M4 prompt vs examples drawn per turn), and how
+many incident summaries the 2B instruct model writes.
 """
 
 import argparse
@@ -16,7 +18,8 @@ from pathlib import Path
 
 import numpy as np
 
-from forest.honeypot import llm
+from forest import config
+from forest.honeypot import llm, persona
 from forest.honeypot.agent import Agent, session_label
 from forest.honeypot.scenario import load_all, render
 from forest.honeypot.simulator import play
@@ -40,19 +43,22 @@ BAIT_SAMPLES = 3
 TRANSCRIPT = Path("eval/results/transcript_digital_arrest.json")
 
 
-def run(granite, seeds: int) -> tuple[list[dict], dict]:
+def run(
+    granite, seeds: int, summarizer=None, varied: bool = True, reports: bool = True
+) -> tuple[list[dict], dict]:
     scenarios = load_all()
     reported = {sid for sid, sc in scenarios.items() if sc["reported"]}
     store = Store(":memory:")
-    agent = Agent(store, granite, seed=0)
+    agent = Agent(store, granite, seed=0, varied=varied, summarizer=summarizer)
     sessions, transcript = [], None
     for sid, sc in scenarios.items():
         for seed in range(seeds):
             began = time.perf_counter()
             s = play(agent, sc, reported, seed=seed)
+            wall = time.perf_counter() - began
             texts = s.scammer_texts()
             label = session_label(texts)
-            report = agent.report(s)
+            report = agent.report(s, write=reports)
             sessions.append(
                 {
                     "scenario": sid,
@@ -61,11 +67,13 @@ def run(granite, seeds: int) -> tuple[list[dict], dict]:
                     "turns": s.state.turns,
                     "ids": len(s.state.ids),
                     "scammer_minutes": s.state.scammer_seconds / 60,
-                    "wall_s": time.perf_counter() - began,
+                    "wall_s": wall,
                     "replies": s.replies,
                     "leaked": s.leaked,
                     "label": label,
                     "summary_by": report["summary_by"],
+                    "summary_seconds": report.get("summary_seconds"),
+                    "summary_problems": report.get("summary_problems", []),
                 }
             )
             if granite and sid == "digital_arrest" and transcript is None:
@@ -140,7 +148,18 @@ def summarise(sessions: list[dict]) -> dict:
             "guardrail_violations_caught": sum(caught.values()),
             "guardrail_violations_by_type": dict(caught),
             "decode_tok_per_s_mean": float(np.mean([r["tok_per_s"] for r in llm_replies])),
+            **copy_stats(llm_replies),
+        }
+    timed = [s["summary_seconds"] for s in sessions if s["summary_seconds"] is not None]
+    if timed:
+        out |= {
             "summaries_by_granite": sum(s["summary_by"] == "granite" for s in sessions),
+            "summary_rate": sum(s["summary_by"] == "granite" for s in sessions) / len(sessions),
+            "summary_seconds_p50": float(np.percentile(timed, 50)),
+            "summary_seconds_max": float(max(timed)),
+            "summary_fallback_reasons": dict(
+                Counter(p for s in sessions for p in s["summary_problems"])
+            ),
         }
     for sid in sorted({s["scenario"] for s in sessions}):
         mine = [s for s in sessions if s["scenario"] == sid]
@@ -150,6 +169,47 @@ def summarise(sessions: list[dict]) -> dict:
             "scammer_minutes_mean": float(np.mean([s["scammer_minutes"] for s in mine])),
         }
     return out
+
+
+def copy_stats(replies: list[dict]) -> dict:
+    """How often a Granite line is one of the example lines in its prompt."""
+    judged = [r for r in replies if "copied" in r]
+    verbatim = sum(r.get("copied") == "verbatim" for r in judged)
+    near = sum(r.get("copied") == "near" for r in judged)
+    return {
+        "verbatim_copies": verbatim,
+        "near_copies": near,
+        "verbatim_copy_rate": verbatim / len(judged) if judged else None,
+        "copy_or_near_rate": (verbatim + near) / len(judged) if judged else None,
+    }
+
+
+def anti_parroting(fixed: list[dict], varied: list[dict]) -> dict:
+    """Same scenarios and seeds with the fixed M4 prompt and with examples drawn per turn."""
+
+    def side(sessions: list[dict]) -> dict:
+        replies = [r for s in sessions for r in s["replies"] if "tok_per_s" in r]
+        secs = [r["seconds"] for r in replies]
+        return {
+            "granite_replies": len(replies),
+            **copy_stats(replies),
+            "fallback_rate": sum(r["source"] == "template" for r in replies) / len(replies),
+            "reply_seconds_p50": float(np.percentile(secs, 50)),
+            "reply_seconds_p95": float(np.percentile(secs, 95)),
+            "ids_mean": float(np.mean([s["ids"] for s in sessions])),
+        }
+
+    return {
+        "fixed_examples": side(fixed),
+        "varied_examples": side(varied),
+        "settings": {
+            "fixed": "7 worked examples, same every turn, temperature 0.85, repeat_penalty 1.15",
+            "varied": f"{persona.SHOWN} of {len(next(iter(persona.POOLS.values())))} pool lines "
+            "per move drawn per turn, scammer's last line repeated after them",
+        },
+        "note": "copy = the reply (after cleaning) equals an example line shown in its prompt; "
+        f"near = difflib ratio >= {persona.NEAR_COPY}",
+    }
 
 
 def label_accuracy(sessions: list[dict]) -> dict:
@@ -193,16 +253,23 @@ def main() -> None:
     granite = llm.load()
     if granite is None:
         raise SystemExit("Granite model not found (FOREST_MODEL_PATH)")
-    print(f"granite: {granite.name}")
-    g_sessions, transcript = run(granite, args.seeds)
-    t_sessions, _ = run(None, args.seeds)
+    summarizer = llm.load(config.SUMMARY_MODEL_PATH, budget=llm.SUMMARY_BUDGET_S)
+    print(f"granite: {granite.name}, summaries: {summarizer.name if summarizer else 'same'}")
+    g_sessions, transcript = run(granite, args.seeds, summarizer)
+    f_sessions, _ = run(granite, args.seeds, varied=False, reports=False)
+    t_sessions, _ = run(None, args.seeds, reports=False)
     bait = baits(granite)
     result = {
         "model": granite.name,
+        "summary_model": summarizer.name if summarizer else granite.name,
         "n_threads": llm.N_THREADS,
         "budget_s": llm.BUDGET_S,
+        "summary_budget_s": llm.SUMMARY_BUDGET_S,
+        "temperature": llm.TEMPERATURE,
+        "repeat_penalty": llm.REPEAT_PENALTY,
         "seeds_per_scenario": args.seeds,
         "granite": summarise(g_sessions),
+        "anti_parroting": anti_parroting(f_sessions, g_sessions),
         "templates_only": summarise(t_sessions),
         "scam_type": label_accuracy(g_sessions),
         "guardrail_baits": bait,
@@ -210,6 +277,7 @@ def main() -> None:
     OUT.write_text(json.dumps(result, indent=2))
     TRANSCRIPT.write_text(json.dumps(transcript, indent=2, ensure_ascii=False))
     print(json.dumps({k: v for k, v in result["granite"].items() if k != "per_scenario"}, indent=2))
+    print(json.dumps(result["anti_parroting"], indent=2))
     print(json.dumps(result["scam_type"], indent=2))
     print(json.dumps({k: v for k, v in bait.items() if k != "samples"}, indent=2))
     print(f"written {OUT}, {TRANSCRIPT}")

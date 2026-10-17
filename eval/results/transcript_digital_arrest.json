@@ -2,44 +2,44 @@
   "model": "granite-4.0-h-350m-base-be.f16.gguf",
   "messages": [
     {
-      "ts": "2026-10-17T16:40:58Z",
+      "ts": "2026-10-17T17:38:24Z",
       "role": "scammer",
       "body": "Good afternoon madam. This is Inspector Sharma from the Mumbai Cyber Crime department. Please confirm you are Mrs Kamla Devi."
     },
     {
-      "ts": "2026-10-17T16:41:10Z",
+      "ts": "2026-10-17T17:38:31Z",
       "role": "agent",
-      "body": "Beta, I don't understand these things. Which office are you calling from?"
+      "body": "Haan ji? Who is speaking beta, I could not hear properly. What happened?"
     },
     {
-      "ts": "2026-10-17T16:41:10Z",
+      "ts": "2026-10-17T17:38:31Z",
       "role": "scammer",
       "body": "Your Aadhaar is linked to a money laundering case. A warrant is ready and you will be arrested within two hours."
     },
     {
-      "ts": "2026-10-17T16:41:25Z",
+      "ts": "2026-10-17T17:38:40Z",
       "role": "agent",
-      "body": "Please don't do anything to me beta, I am alone at home. Tell me slowly, how do I fix it?"
+      "body": "Hello? I am Kamla Devi, can you please tell me what is the case?"
     },
     {
-      "ts": "2026-10-17T16:41:25Z",
+      "ts": "2026-10-17T17:38:40Z",
       "role": "scammer",
       "body": "Madam, case band karwane ke liye verification amount Rs 49,999 abhi inspector.verify22@okaxis par transfer kijiye. Yeh refundable hai, jaanch ke baad wapas mil jayega."
     },
     {
-      "ts": "2026-10-17T16:41:29Z",
+      "ts": "2026-10-17T17:38:48Z",
       "role": "agent",
-      "body": "inspector.verify22@okaxis... haan ji, I typed it but it is showing failed. Is there any other account?"
+      "body": "inspector.verify22@okaxis... please check this phone number again. Is there any other account?"
     },
     {
-      "ts": "2026-10-17T16:41:29Z",
+      "ts": "2026-10-17T17:38:48Z",
       "role": "scammer",
       "body": "That id is under maintenance. Use this one instead, narcotics.clear07@okicici, and send the amount right now."
     },
     {
-      "ts": "2026-10-17T16:41:32Z",
+      "ts": "2026-10-17T17:38:57Z",
       "role": "agent",
-      "body": "Beta, my grandson Rohan is coming now, he will help me. I will call you back."
+      "body": "Hello?"
     }
   ],
   "replies": [
@@ -47,47 +47,52 @@
       "move": "confused_engage",
       "source": "template",
       "problems": [
-        "off_character"
+        "echoes_caller"
       ],
-      "tokens": 19,
-      "tok_per_s": 8.407931102172835,
-      "llm_seconds": 12.412480451006559,
+      "tokens": 17,
+      "copied": null,
+      "tok_per_s": 7.999615558475676,
+      "llm_seconds": 6.805221848000656,
       "violations": [],
-      "seconds": 12.412944278003124
+      "seconds": 6.806706805000431
     },
     {
       "move": "scared_comply",
       "source": "granite",
       "problems": [],
-      "tokens": 25,
-      "tok_per_s": 7.7747392934063875,
-      "llm_seconds": 14.608202764997259,
+      "tokens": 19,
+      "copied": null,
+      "tok_per_s": 8.320501825221825,
+      "llm_seconds": 8.389002896998136,
       "violations": [],
-      "seconds": 14.608423297999252
+      "seconds": 8.390248629002599
     },
     {
       "move": "confirm_and_ask_alt",
       "source": "granite",
       "problems": [],
-      "tokens": 19,
-      "tok_per_s": 7.99079153613739,
-      "llm_seconds": 3.9479269559960812,
+      "tokens": 7,
+      "copied": null,
+      "tok_per_s": 7.891179218134669,
+      "llm_seconds": 8.756771248001314,
       "violations": [],
-      "seconds": 3.948151960998075
+      "tail_added": true,
+      "seconds": 8.757542831997853
     },
     {
       "move": "wind_down",
       "source": "granite",
       "problems": [],
-      "tokens": 21,
-      "tok_per_s": 8.083422233424631,
-      "llm_seconds": 3.386469130004116,
+      "tokens": 2,
+      "copied": null,
+      "tok_per_s": 7.755142481471893,
+      "llm_seconds": 8.91581048599619,
       "violations": [],
-      "seconds": 3.3866570939935627
+      "seconds": 8.916192987002432
     }
   ],
   "report": {
-    "session": "58b5bdf40fca",
+    "session": "c07d42eb0f00",
     "scam_type": "digital_arrest",
     "predicted": {
       "label": "digital_arrest",
@@ -113,8 +118,10 @@
     "holds": 0,
     "hold_reason": "INTEL_MATCH",
     "turns": 4,
-    "scammer_minutes": 5.9,
-    "summary": "Reported digital arrest scam. The caller went through authority claim, threat, payment ask and asked for money to 2 collection id(s): na****@okicici (upi), in****@okaxis (upi). 0 payment(s) to these ids were held by the bank's guard (INTEL_MATCH).",
-    "summary_by": "template"
+    "scammer_minutes": 4.8,
+    "summary": "A caller claiming to be an authority threatened the victim and demanded payment via na****@okicici and in****@okaxis, but no funds were held by the bank guard.",
+    "summary_by": "granite",
+    "summary_model": "granite-3.3-2b-instruct-be.Q4_K_M.gguf",
+    "summary_seconds": 80.8
   }
 }
