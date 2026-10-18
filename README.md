@@ -1,6 +1,6 @@
 # Forest
 
-Team Forest, IBM Z Datathon 2026 (SSF2026).
+Team Forest, IBM Z Datathon 2026.
 
 Scammers reveal the UPI ids and bank accounts they collect money on to anyone who plays along, so Forest plays along. A Granite-powered honeypot persona keeps the scammer talking, pulls out every collection id they give, and hands those ids to a payment guard on the same IBM LinuxONE machine. When a real victim later tries to pay one of those ids, the payment is held before the money leaves, the victim sees a warning in Hindi and English, and a family member is told. The guard also scores every other payment with a Snap ML model for mule patterns, so receivers the honeypot never met are still caught.
 
@@ -235,4 +235,4 @@ Prior work we build on: "Send to which account? Evaluation of an LLM-based Scamb
 | Samruddhi | [@samjn12](https://github.com/samjn12) |
 | Anagha | [@daluther](https://github.com/daluther) |
 
-Event code: SSF2026. Licence: MIT.
+Licence: MIT.
