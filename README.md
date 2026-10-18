@@ -23,6 +23,10 @@ Most anti-scam tools sit on the phone and try to classify the call. By the time 
 
 The whole loop runs in one Docker container on an IBM LinuxONE z17 virtual machine in the LinuxONE Community Cloud.
 
+## How it would be deployed
+
+Forest never listens to anyone's calls. Scammers reach Kamla because her decoy numbers are seeded where scammers buy target lists (the approach O2's "Daisy" used in the UK), or because people forward scam messages to it, the way reports already reach India's Chakshu portal and the 1930 helpline. The payment guard is meant to be run by a bank or UPI app on the IBM Z systems that already process its payments, much like the suspect-account registry that I4C runs with banks today. In this prototype both sides are simulated: the scammers are scripted and the payments come from IBM's public AML dataset.
+
 ## Why IBM Z
 
 - Inference happens next to the data. Many large banks run their core payment systems on IBM Z, so the guard can score inside the payment flow instead of shipping each transaction to a separate fraud service and waiting for the answer.
