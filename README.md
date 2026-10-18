@@ -80,7 +80,7 @@ Throughput: one scoring process handles 15,295 payments per second, and three pr
 
 IFSC codes were attached to the right account in 88 of 88 cases.
 
-The scam-type classifier gets macro-F1 0.79 on a grouped held-out split. Trained on one source and tested on the other (English bank SMS against Hinglish call openers), macro-F1 drops to 0.57 and 0.49, while scam vs legitimate holds at F1 0.91 and 0.70. We quote the cross-source number as the honest one.
+The scam-type classifier gets macro-F1 0.79 on a grouped held-out split. Trained on one source and tested on the other (English bank SMS against Hinglish call openers), macro-F1 drops to 0.57 and 0.49, while scam vs legitimate holds at F1 0.91 and 0.70. We lead with the cross-source number because it is the harder test.
 
 ### Honeypot
 
