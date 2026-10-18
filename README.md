@@ -52,7 +52,7 @@ The pause rate drifts from 1% on the validation days to 2.6% on the test days, s
 
 The features only look backwards in time, so shuffling the rows into a random split gives no free gain (PR-AUC 0.503). To show what leakage looks like, we trained on PaySim with and without its balance columns, which encode the label: PR-AUC 0.991 with them, 0.598 without ([`leakage.json`](eval/results/leakage.json)). We report only leak-free models.
 
-Replaying 20,000 test payments one at a time through the live scoring code gave the same decisions as the offline batch for all 20,000, at p50 0.048 ms and p99 0.066 ms per payment (feature update, Snap ML predict and policy, one thread, zDNN tree format).
+Replaying 20,000 test payments one at a time through the live scoring code gave the same decisions as the offline batch for all 20,000. Timed on its own on the z17, one scoring call (feature update, Snap ML predict and policy, one thread, zDNN tree format) takes p50 0.058 ms and p99 0.167 ms over 20,000 payments ([`latency.json`](eval/results/latency.json)).
 
 Latency through the running service on the z17 (3 vCPU), with payments sent at 50 per second and Granite loaded in the same container ([`latency.json`](eval/results/latency.json)). "Guard" is the scoring call inside the service. "Round trip" is the full HTTP request from a client on the same VM.
 
@@ -101,7 +101,9 @@ What we learned about model size: the 350M base model often echoed its example l
 
 ### Time to protection
 
-> **TODO (M5):** from `eval/results/` (time-to-protection run): seconds from the scammer revealing an id to the first victim payment held, share of later payments to harvested ids held, and rupees protected in the replay.
+Live, on the z17 ([`protection.json`](eval/results/protection.json)): in a timed kyc_bank session with real Granite 350M replies, the first collection id was in the intel store 33.7 s after the scammer's first message (4 turns). The next victim payment to that id, Rs 85,000, was held 1.5 ms after the id was stored, with reason `INTEL_MATCH`. Before the chat, the same payment only got a pause prompt (unusual amount, new payee, several payments in a short time). Our scripted scammer answers instantly; a real one types slower, so a real chat takes longer.
+
+Replay of the test days (a simulation, same file): we assume the honeypot's intel on each of 20 mule accounts arrives 30 minutes after the account receives its first laundering payment. From then on, 104 laundering payments reach those accounts. The model alone holds 68, pauses 24 and lets 12 through. With the intel, all 104 are held: 36 more holds, 24 of them payments that would only have been paused. The cost is 56 legitimate payments into the same accounts that also get held. With a 60-minute delay the gain is again 36 (of 103), and with 4 hours it is 29 (of 92). We report counts, not rupees, because a few large non-rupee payments in the dataset dominate the rupee totals.
 
 ### Screenshots
 
