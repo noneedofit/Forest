@@ -107,7 +107,33 @@ Replay of the test days (a simulation, same file): we assume the honeypot's inte
 
 ### Screenshots
 
-> **TODO (M5):** dashboard screenshots from `assets/` (live payment feed, honeypot chat with the highlighted UPI id, victim phone warning), plus `docker ps`, `lscpu` showing machine type 9175 and `nnpa`, and the encrypted DB row.
+All taken from one live run on the z17 (dashboard through an SSH tunnel; terminal output from SSH sessions on the VM).
+
+The scammer names a UPI id; the extractor highlights it and stores it in the intel list:
+
+![Honeypot chat with the UPI id highlighted](assets/dashboard-chat.png)
+
+The next payment to that id is held, and the victim's phone shows why in Hindi and English:
+
+![Payment held with the victim warning](assets/dashboard-hold.png)
+
+After the call, Granite 3.3 2B writes the incident report:
+
+![Incident report written by Granite](assets/dashboard-report.png)
+
+The machine: z17 (machine type 9175), the `nnpa` flag, llama.cpp's zDNN backend on NNPA, and the service container:
+
+![lscpu, nnpa, zDNN and docker ps on the VM](assets/terminal-z17.png)
+
+![Health endpoint: zDNN tree format, z17, nnpa](assets/health-endpoint.png)
+
+Granite reply speed from the service log during that run:
+
+![Granite tokens per second](assets/granite-tokens.png)
+
+The chat log is stored encrypted (AES-256-GCM) and harvested ids only as HMAC pseudonyms:
+
+![Encrypted messages and pseudonymised intel in SQLite](assets/encrypted-db.png)
 
 ## Responsible AI
 
